@@ -1,1 +1,5 @@
 export * from './Auth'
+export * from './Favorite'
+export * from './Generate'
+export * from './Image'
+export * from './User'
