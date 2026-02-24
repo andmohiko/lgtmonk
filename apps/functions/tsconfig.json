@@ -14,7 +14,7 @@
     "paths": {
       "~/*": ["./src/*"],
       "~": ["./src"],
-      "@firebase-monorepo/common": ["../../packages/common/src"]
+      "@lgtmonk/common": ["../../packages/common/src"]
     },
     "resolveJsonModule": true,
     "noUnusedLocals": true,

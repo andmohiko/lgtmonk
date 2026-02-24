@@ -12,7 +12,7 @@ export default defineConfig({
   shims: true, // Node.js のグローバルAPI shimを使う場合
   esbuildOptions(options) {
     options.alias = {
-      '@firebase-monorepo/common': '../../packages/common/src',
+      '@lgtmonk/common': '../../packages/common/src',
     }
   },
 })

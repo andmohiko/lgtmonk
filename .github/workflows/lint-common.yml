@@ -1,4 +1,4 @@
-name: Run @firebase-monorepo/common lint
+name: Run @lgtmonk/common lint
 on:
   push:
     paths:
