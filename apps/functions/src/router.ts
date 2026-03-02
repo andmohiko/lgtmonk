@@ -15,4 +15,12 @@ router.post(
   require('./api/health/test').handle,
 )
 
+router.get(
+  '/searchImages',
+  [check('keyword').exists().isString()],
+  require('./api/searchImages/searchImages').handle,
+)
+
+app.use(router)
+
 export default app

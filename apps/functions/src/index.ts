@@ -10,6 +10,7 @@ process.env.TZ = timezone
 // API
 export const api = onRequest(
   {
+    region: 'asia-northeast1',
     memory: '1GiB',
   },
   app,
