@@ -17,6 +17,7 @@
     "recaptcha",
     "turbopack",
     "vercel",
+    "Vite",
     "webp"
   ],
   "ignorePaths": [

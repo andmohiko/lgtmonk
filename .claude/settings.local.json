@@ -2,7 +2,15 @@
   "permissions": {
     "allow": [
       "Bash(npm run build:*)",
-      "Bash(pnpm build:*)"
+      "Bash(pnpm build:*)",
+      "Bash(pnpm --filter @lgtmonk/web run type-check:*)",
+      "Bash(pnpm run build:*)",
+      "Bash(pnpm run check:*)",
+      "Bash(pnpm --filter @lgtmonk/web run check --write)",
+      "Bash(pnpm --filter @lgtmonk/web run build:*)",
+      "Bash(pnpm run build:client:*)",
+      "Bash(cat:*)",
+      "Bash(pnpm --filter @lgtmonk/web run check:*)"
     ],
     "deny": [],
     "ask": []

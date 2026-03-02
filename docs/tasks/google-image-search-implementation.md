@@ -16,27 +16,26 @@ F-04（LGTM画像生成 - Google画像検索）の実装を行う。
 ### 1. Google Custom Search APIのセットアップ
 
 #### 1.1 Google Cloud Consoleでの設定
-- [ ] Google Cloud Projectを作成/選択
-- [ ] Custom Search API を有効化
-- [ ] APIキーを取得（HTTPリファラー制限を設定）
-- [ ] 課金アカウントの設定確認
+- [x] Google Cloud Projectを作成/選択
+- [x] Custom Search API を有効化
+- [x] APIキーを取得（HTTPリファラー制限を設定）
+- [x] 課金アカウントの設定確認
 
 #### 1.2 Programmable Search Engineの作成
-- [ ] [Programmable Search Engine](https://programmablesearchengine.google.com/)にアクセス
-- [ ] 新しい検索エンジンを作成
-  - 検索対象: ウェブ全体
+- [x] [Programmable Search Engine](https://programmablesearchengine.google.com/)にアクセス
+- [x] 新しい検索エンジンを作成
   - 画像検索: 有効
   - セーフサーチ: 有効
-- [ ] 検索エンジンID（cx）を取得: e6b3658903beb4b2b
+- [x] 検索エンジンID（cx）を取得: 358cfb3610665400a
 
 #### 1.3 環境変数の設定
-- [ ] `.env.example` にGoogle Custom Search APIの設定を追加
+- [x] `.env.example` にGoogle Custom Search APIの設定を追加
   ```
   VITE_GOOGLE_CUSTOM_SEARCH_API_KEY=your-api-key
   VITE_GOOGLE_CUSTOM_SEARCH_ENGINE_ID=your-search-engine-id
   ```
-- [ ] `.env` ファイルに実際の値を設定
-- [ ] `.gitignore` で `.env` が除外されていることを確認
+- [x] `.env` ファイルに実際の値を設定
+- [x] `.gitignore` で `.env` が除外されていることを確認
 
 ### 2. 型定義の実装
 
