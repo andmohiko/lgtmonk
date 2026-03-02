@@ -6,8 +6,7 @@ import {
   Search,
   Upload,
 } from 'lucide-react'
-import { useState } from 'react'
-import { searchGoogleImages } from '@/lib/googleImageSearch'
+import { useCallback, useRef, useState } from 'react'
 import type { SearchResultImage } from '@/types/image'
 
 export const Route = createFileRoute('/generate')({
@@ -31,9 +30,42 @@ function GeneratePage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  // Google画像検索処理
-  const handleGoogleSearch = async () => {
-    if (!keyword.trim()) return
+  // キャッシュとデバウンス制御
+  const searchCacheRef = useRef<Map<string, Array<SearchResultImage>>>(
+    new Map(),
+  )
+  const lastSearchTimeRef = useRef<number>(0)
+
+  // Google画像検索処理（メモ化）
+  const handleGoogleSearch = useCallback(async () => {
+    const trimmedKeyword = keyword.trim()
+
+    // キーワードのバリデーション
+    if (!trimmedKeyword) {
+      setErrorMessage('キーワードを入力してください')
+      return
+    }
+
+    if (trimmedKeyword.length > 100) {
+      setErrorMessage('キーワードは100文字以内で入力してください')
+      return
+    }
+
+    // 連続検索の防止（500ms以内の連続リクエストを防止）
+    const now = Date.now()
+    if (now - lastSearchTimeRef.current < 500) {
+      return
+    }
+    lastSearchTimeRef.current = now
+
+    // キャッシュチェック
+    const cached = searchCacheRef.current.get(trimmedKeyword)
+    if (cached) {
+      setSearchResults(cached)
+      setSelectedImage(null)
+      setErrorMessage(null)
+      return
+    }
 
     setIsSearching(true)
     setSearchResults([])
@@ -41,23 +73,44 @@ function GeneratePage() {
     setErrorMessage(null)
 
     try {
-      const results = await searchGoogleImages(keyword.trim(), 10)
+      const functionsUrl =
+        import.meta.env.VITE_FIREBASE_FUNCTIONS_URL ||
+        'http://localhost:5001/lgtmonk-dev/us-central1/api'
+
+      const response = await fetch(
+        `${functionsUrl}/searchImages?keyword=${encodeURIComponent(trimmedKeyword)}&count=20`,
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'API request failed')
+      }
+
+      const results: Array<SearchResultImage> = await response.json()
       setSearchResults(results)
+      // キャッシュに保存
+      searchCacheRef.current.set(trimmedKeyword, results)
 
       if (results.length === 0) {
         setErrorMessage('検索結果が見つかりませんでした')
       }
     } catch (error) {
-      console.error('Google Image Search error:', error)
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : '画像検索に失敗しました。もう一度お試しください。',
-      )
+      console.error('Brave Image Search error:', error)
+      if (error instanceof Error) {
+        if (error.message.includes('not configured')) {
+          setErrorMessage(
+            'Brave Search APIの設定が完了していません。管理者にお問い合わせください。',
+          )
+        } else {
+          setErrorMessage(error.message)
+        }
+      } else {
+        setErrorMessage('画像検索に失敗しました。もう一度お試しください。')
+      }
     } finally {
       setIsSearching(false)
     }
-  }
+  }, [keyword])
 
   // 画像選択処理
   const handleSelectImage = (image: SearchResultImage) => {
@@ -103,6 +156,7 @@ function GeneratePage() {
         {/* タブ切り替え */}
         <div className="flex gap-2 mb-4 border-b border-[#21262d]">
           <button
+            type="button"
             onClick={() => setActiveTab('google')}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors relative ${
               activeTab === 'google'
@@ -117,6 +171,7 @@ function GeneratePage() {
             )}
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('upload')}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors relative ${
               activeTab === 'upload'
@@ -137,11 +192,15 @@ function GeneratePage() {
           <div className="space-y-4">
             {/* 検索ボックス */}
             <div className="bg-[#161b22] border border-[#30363d] rounded-md p-4">
-              <label className="block text-sm font-medium text-[#f0f6fc] mb-2">
+              <label
+                htmlFor="keyword-input"
+                className="block text-sm font-medium text-[#f0f6fc] mb-2"
+              >
                 Keyword
               </label>
               <div className="flex gap-2">
                 <input
+                  id="keyword-input"
                   type="text"
                   placeholder="cat, applause, amazing..."
                   value={keyword}
@@ -152,6 +211,7 @@ function GeneratePage() {
                   className="flex-1 bg-[#0d1117] border border-[#30363d] rounded-md px-3 py-2 text-sm text-[#c9d1d9] placeholder:text-[#6e7681] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]"
                 />
                 <button
+                  type="button"
                   onClick={handleGoogleSearch}
                   disabled={isSearching || !keyword.trim()}
                   className="px-4 py-2 bg-[#238636] text-white text-sm font-medium rounded-md hover:bg-[#2ea043] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
@@ -178,9 +238,10 @@ function GeneratePage() {
                   Select an image
                 </h3>
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                  {searchResults.map((image, index) => (
+                  {searchResults.map((image) => (
                     <button
-                      key={index}
+                      type="button"
+                      key={image.imageUrl}
                       onClick={() => handleSelectImage(image)}
                       className={`relative aspect-square rounded-md overflow-hidden transition-all ${
                         selectedImage === image
@@ -228,9 +289,9 @@ function GeneratePage() {
         {/* アップロードタブ */}
         {activeTab === 'upload' && (
           <div className="bg-[#161b22] border border-[#30363d] rounded-md p-4">
-            <label className="block text-sm font-medium text-[#f0f6fc] mb-2">
+            <p className="block text-sm font-medium text-[#f0f6fc] mb-2">
               Image file
-            </label>
+            </p>
             <label
               htmlFor="file-upload"
               className="flex flex-col items-center justify-center w-full py-8 border-2 border-dashed border-[#30363d] rounded-md cursor-pointer hover:border-[#58a6ff] transition-colors group"
@@ -243,8 +304,10 @@ function GeneratePage() {
                     className="max-h-32 max-w-full object-contain rounded"
                   />
                   <p className="text-xs text-[#8b949e]">
-                    {uploadedImage?.name} (
-                    {(uploadedImage?.size / 1024 / 1024).toFixed(2)} MB)
+                    {uploadedImage?.name}{' '}
+                    {uploadedImage?.size
+                      ? `(${(uploadedImage.size / 1024 / 1024).toFixed(2)} MB)`
+                      : ''}
                   </p>
                 </div>
               ) : (
@@ -274,6 +337,7 @@ function GeneratePage() {
           (activeTab === 'upload' && uploadedImage)) && (
           <div className="mt-4">
             <button
+              type="button"
               onClick={handleGenerate}
               disabled={isGenerating}
               className="w-full py-2.5 bg-[#238636] text-white text-sm font-medium rounded-md hover:bg-[#2ea043] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"

@@ -17,7 +17,9 @@
       "Bash(source:*)",
       "Bash(curl:*)",
       "Bash(gcloud services api-keys list:*)",
-      "Bash(pnpm run pre-build:*)"
+      "Bash(pnpm run pre-build:*)",
+      "Bash(firebase functions:list:*)",
+      "Bash(firebase functions:log:*)"
     ],
     "deny": [],
     "ask": []

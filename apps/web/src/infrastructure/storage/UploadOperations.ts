@@ -1,10 +1,10 @@
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'
+import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage'
 
-import { storage } from '~/lib/firebase'
+import { storage } from '@/lib/firebase'
 
 export const uploadImage = async (
   path: string,
-  blob: Blob
+  blob: Blob,
 ): Promise<string> => {
   const imageRef = ref(storage, path)
   const snapShot = await uploadBytesResumable(imageRef, blob)

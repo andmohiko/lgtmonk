@@ -91,5 +91,7 @@ export const deleteGenerateOperation = async (
   userId: UserId,
   generateId: GenerateId,
 ): Promise<void> => {
-  await deleteDoc(doc(db, userCollection, userId, generateCollection, generateId))
+  await deleteDoc(
+    doc(db, userCollection, userId, generateCollection, generateId),
+  )
 }

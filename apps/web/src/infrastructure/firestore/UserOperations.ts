@@ -38,18 +38,21 @@ export const subscribeUserOperation = (
   userId: UserId,
   setter: (user: User | null) => void,
 ): Unsubscribe => {
-  const unsubscribe = onSnapshot(doc(db, userCollection, userId), (snapshot) => {
-    const data = snapshot.data()
-    if (!data) {
-      setter(null)
-      return
-    }
-    const user = {
-      userId: snapshot.id,
-      ...convertDate(data, dateColumns),
-    } as User
-    setter(user)
-  })
+  const unsubscribe = onSnapshot(
+    doc(db, userCollection, userId),
+    (snapshot) => {
+      const data = snapshot.data()
+      if (!data) {
+        setter(null)
+        return
+      }
+      const user = {
+        userId: snapshot.id,
+        ...convertDate(data, dateColumns),
+      } as User
+      setter(user)
+    },
+  )
   return unsubscribe
 }
 
