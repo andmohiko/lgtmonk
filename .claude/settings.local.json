@@ -10,7 +10,14 @@
       "Bash(pnpm --filter @lgtmonk/web run build:*)",
       "Bash(pnpm run build:client:*)",
       "Bash(cat:*)",
-      "Bash(pnpm --filter @lgtmonk/web run check:*)"
+      "Bash(pnpm --filter @lgtmonk/web run check:*)",
+      "Bash(pnpm exec tsc:*)",
+      "Bash(gcloud projects list:*)",
+      "Bash(gcloud services list:*)",
+      "Bash(source:*)",
+      "Bash(curl:*)",
+      "Bash(gcloud services api-keys list:*)",
+      "Bash(pnpm run pre-build:*)"
     ],
     "deny": [],
     "ask": []
