@@ -18,27 +18,49 @@ runConfig:
 
 # Environment variables
 env:
+  # Build and runtime environment
   - variable: NODE_ENV
     value: production
+    availability:
+      - BUILD
+      - RUNTIME
 
   # Firebase configuration (set these as secrets in Firebase Console)
+  # These need to be available at BUILD time for Vite bundling
   - variable: VITE_FIREBASE_API_KEY
     secret: firebase-api-key
+    availability:
+      - BUILD
+      - RUNTIME
   - variable: VITE_FIREBASE_AUTH_DOMAIN
     secret: firebase-auth-domain
+    availability:
+      - BUILD
+      - RUNTIME
   - variable: VITE_FIREBASE_PROJECT_ID
     secret: firebase-project-id
+    availability:
+      - BUILD
+      - RUNTIME
   - variable: VITE_FIREBASE_STORAGE_BUCKET
     secret: firebase-storage-bucket
+    availability:
+      - BUILD
+      - RUNTIME
   - variable: VITE_FIREBASE_MESSAGING_SENDER_ID
     secret: firebase-messaging-sender-id
+    availability:
+      - BUILD
+      - RUNTIME
   - variable: VITE_FIREBASE_APP_ID
     secret: firebase-app-id
+    availability:
+      - BUILD
+      - RUNTIME
 
   # Cloud Functions URL
   - variable: VITE_FIREBASE_FUNCTIONS_URL
     secret: firebase-functions-url
-
-  # Brave Search API key
-  - variable: BRAVE_SEARCH_API_KEY
-    secret: brave-search-api-key
+    availability:
+      - BUILD
+      - RUNTIME
