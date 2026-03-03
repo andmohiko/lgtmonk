@@ -15,19 +15,12 @@ const config = defineConfig({
   ],
   preview: {
     port: process.env.PORT ? parseInt(process.env.PORT) : 8080,
-    host: '0.0.0.0',
-    strictPort: true,
-    allowedHosts: [
-      't-1536140864---lgtmonk-d7ny3y5ita-de.a.run.app',
-      'lgtm.mnhr.dev',
-    ],
+    host: true,
+    allowedHosts: true,
   },
   server: {
     host: true,
-    allowedHosts: [
-      't-1536140864---lgtmonk-d7ny3y5ita-de.a.run.app',
-      'lgtm.mnhr.dev',
-    ],
+    allowedHosts: true,
   },
 })
 
