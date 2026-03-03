@@ -27,28 +27,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0d1117] text-[#c9d1d9]">
-      {/* ヘッダー */}
-      <div className="border-b border-[#21262d] bg-[#161b22]">
-        <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl md:text-3xl font-bold text-[#f0f6fc]">
-              LGTMonk
-            </h1>
-            <Link
-              to="/generate"
-              className="flex items-center gap-2 px-4 py-2 bg-[#238636] text-white text-sm font-medium rounded-md hover:bg-[#2ea043] transition-colors"
-            >
-              <ImagePlus className="w-4 h-4" />
-              <span className="hidden sm:inline">Generate</span>
-            </Link>
-          </div>
-          <p className="text-sm text-[#8b949e]">
-            GitHub のプルリクエストに貼る LGTM 画像を、手軽に生成・検索・コピー
-          </p>
-        </div>
-      </div>
-
+    <div className="bg-[#0d1117] text-[#c9d1d9]">
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* タブ切り替え */}
         <div className="flex items-center justify-between mb-6">

@@ -275,8 +275,8 @@ function GeneratePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0d1117] text-[#c9d1d9]">
-      <div className="max-w-4xl mx-auto px-4 py-6 md:py-8">
+    <div className="bg-[#0d1117] text-[#c9d1d9]">
+      <div className="max-w-4xl mx-auto px-4 py-6">
         {/* タブ切り替え */}
         <div className="flex gap-2 mb-4 border-b border-[#21262d]">
           <button
