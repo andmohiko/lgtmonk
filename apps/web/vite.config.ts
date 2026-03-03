@@ -18,6 +18,9 @@ const config = defineConfig({
     host: '0.0.0.0',
     strictPort: true, // Fail if port is already in use
   },
+  server: {
+    host: true, // Allow all hosts for Cloud Run dynamic URLs
+  },
 })
 
 export default config
