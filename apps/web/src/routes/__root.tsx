@@ -24,7 +24,7 @@ export const Route = createRootRoute({
       },
       {
         name: 'description',
-        content: 'LGTM画像の僧侶、LGTMonk。LGTM画像を生成します。',
+        content: 'LGTMの僧侶、LGTMonk。LGTM画像を生成します。',
       },
       // OGP meta tags
       {
@@ -33,7 +33,7 @@ export const Route = createRootRoute({
       },
       {
         property: 'og:description',
-        content: 'LGTM画像の僧侶、LGTMonk。LGTM画像を生成します。',
+        content: 'LGTMの僧侶、LGTMonk。LGTM画像を生成します。',
       },
       {
         property: 'og:type',
