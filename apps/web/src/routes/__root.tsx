@@ -18,6 +18,40 @@ export const Route = createRootRoute({
       {
         title: 'LGTMonk - LGTM Image Generator',
       },
+      {
+        name: 'description',
+        content: 'LGTM画像の僧侶、LGTMonk。LGTM画像を生成します。',
+      },
+      // OGP meta tags
+      {
+        property: 'og:title',
+        content: 'LGTMonk - LGTM Image Generator',
+      },
+      {
+        property: 'og:description',
+        content: 'LGTM画像の僧侶、LGTMonk。LGTM画像を生成します。',
+      },
+      {
+        property: 'og:type',
+        content: 'website',
+      },
+      {
+        property: 'og:site_name',
+        content: 'LGTMonk',
+      },
+      // Twitter Card meta tags
+      {
+        name: 'twitter:card',
+        content: 'summary_large_image',
+      },
+      {
+        name: 'twitter:title',
+        content: 'LGTMonk - LGTM Image Generator',
+      },
+      {
+        name: 'twitter:description',
+        content: 'LGTM画像の僧侶、LGTMonk。LGTM画像を生成します。',
+      },
     ],
     links: [
       {
