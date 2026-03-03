@@ -7,6 +7,7 @@ import {
   Upload,
 } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
+import { GeneratingImageDialog } from '@/components/GeneratingImageDialog'
 import type { SearchResultImage } from '@/types/image'
 
 export const Route = createFileRoute('/generate')({
@@ -29,6 +30,10 @@ function GeneratePage() {
   const [uploadedImage, setUploadedImage] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
+    null,
+  )
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   // キャッシュとデバウンス制御
   const searchCacheRef = useRef<Map<string, Array<SearchResultImage>>>(
@@ -117,16 +122,132 @@ function GeneratePage() {
     setSelectedImage(image)
   }
 
-  // LGTM画像生成処理（ロジックは後で実装）
+  // LGTM画像生成処理
   const handleGenerate = async () => {
     if (activeTab === 'google' && !selectedImage) return
     if (activeTab === 'upload' && !uploadedImage) return
 
     setIsGenerating(true)
-    // TODO: Cloud Functionsの画像生成APIを呼び出す実装
-    setTimeout(() => {
+    setErrorMessage(null)
+
+    try {
+      let generatedImageUrl: string
+
+      if (activeTab === 'google' && selectedImage) {
+        // Google画像検索からの生成
+        const { generateLgtmImageFromUrl } = await import(
+          '@/lib/api/generateLgtmImage'
+        )
+        generatedImageUrl = await generateLgtmImageFromUrl(
+          selectedImage.imageUrl,
+          keyword.trim(),
+        )
+      } else if (activeTab === 'upload' && uploadedImage) {
+        // アップロード画像からの生成
+        const { generateLgtmImageFromFile } = await import(
+          '@/lib/api/generateLgtmImage'
+        )
+        generatedImageUrl = await generateLgtmImageFromFile(
+          uploadedImage,
+          '', // アップロードの場合はキーワードなし
+        )
+      } else {
+        throw new Error('画像が選択されていません')
+      }
+
+      // Firestoreに保存
+      await saveGeneratedImageToFirestore(generatedImageUrl)
+
+      // 成功メッセージを表示（TODO: 成功時のUIを実装）
+      console.log('LGTM画像が生成されました:', generatedImageUrl)
+      alert(`LGTM画像が生成されました！\n\n${generatedImageUrl}`)
+    } catch (error) {
+      console.error('LGTM画像生成エラー:', error)
+      if (error instanceof Error) {
+        setErrorMessage(error.message)
+      } else {
+        setErrorMessage(
+          'LGTM画像の生成に失敗しました。もう一度お試しください。',
+        )
+      }
+    } finally {
       setIsGenerating(false)
-    }, 2000)
+    }
+  }
+
+  // Firestoreに生成した画像を保存
+  const saveGeneratedImageToFirestore = async (
+    imageUrl: string,
+  ): Promise<string> => {
+    console.log('[saveGeneratedImageToFirestore] 開始:', imageUrl)
+
+    const { createImageOperation } = await import(
+      '@/infrastructure/firestore/ImageOperations'
+    )
+    const { serverTimestamp, auth } = await import('@/lib/firebase')
+
+    // 認証状態を確認（ログイン済みの場合はuidを取得）
+    const userId = auth.currentUser?.uid || null
+
+    console.log('[saveGeneratedImageToFirestore] ユーザーID:', userId)
+
+    try {
+      // imagesコレクションに保存（IDは自動生成）
+      const imageId = await createImageOperation({
+        copiedCount: 0,
+        createdBy: userId,
+        imageUrl,
+        impressionCount: 0,
+        keyword: activeTab === 'google' ? keyword.trim() : '',
+        createdAt: serverTimestamp,
+        updatedAt: serverTimestamp,
+      })
+
+      console.log('[saveGeneratedImageToFirestore] 生成された画像ID:', imageId)
+      console.log(
+        '[saveGeneratedImageToFirestore] imagesコレクションへの保存成功',
+      )
+
+      // ログイン済みの場合、ユーザーの生成履歴にも保存
+      if (userId) {
+        await saveToUserGenerateHistory(userId, imageId, imageUrl)
+      }
+
+      console.log('[saveGeneratedImageToFirestore] 保存完了')
+      return imageId
+    } catch (error) {
+      console.error('[saveGeneratedImageToFirestore] エラー:', error)
+      throw new Error(
+        'Firestoreへの保存に失敗しました。もう一度お試しください。',
+      )
+    }
+  }
+
+  // ユーザーの生成履歴に保存
+  const saveToUserGenerateHistory = async (
+    userId: string,
+    imageId: string,
+    imageUrl: string,
+  ) => {
+    console.log('[saveToUserGenerateHistory] 開始:', { userId, imageId })
+
+    try {
+      const { createGenerateOperation } = await import(
+        '@/infrastructure/firestore/GenerateOperations'
+      )
+      const { serverTimestamp } = await import('@/lib/firebase')
+
+      await createGenerateOperation(userId, imageId, {
+        imageUrl,
+        createdAt: serverTimestamp,
+      })
+
+      console.log('[saveToUserGenerateHistory] 保存成功')
+    } catch (error) {
+      console.error('[saveToUserGenerateHistory] エラー:', error)
+      // 生成履歴の保存失敗はエラーとして扱わない（メイン処理は成功）
+      console.warn('生成履歴の保存に失敗しましたが、処理を続行します')
+    }
   }
 
   // 画像アップロード処理
@@ -205,9 +326,6 @@ function GeneratePage() {
                   placeholder="cat, applause, amazing..."
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleGoogleSearch()
-                  }}
                   className="flex-1 bg-[#0d1117] border border-[#30363d] rounded-md px-3 py-2 text-sm text-[#c9d1d9] placeholder:text-[#6e7681] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]"
                 />
                 <button
