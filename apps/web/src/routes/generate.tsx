@@ -305,7 +305,8 @@ function GeneratePage() {
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f78166]" />
             )}
           </button>
-          <button
+          {/* アップロードタブは実装予定のため非表示 */}
+          {/* <button
             type="button"
             onClick={() => setActiveTab('upload')}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors relative ${
@@ -319,7 +320,7 @@ function GeneratePage() {
             {activeTab === 'upload' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f78166]" />
             )}
-          </button>
+          </button> */}
         </div>
 
         {/* Google検索タブ */}
@@ -418,8 +419,8 @@ function GeneratePage() {
           </div>
         )}
 
-        {/* アップロードタブ */}
-        {activeTab === 'upload' && (
+        {/* アップロードタブ（実装予定のため非表示） */}
+        {/* {activeTab === 'upload' && (
           <div className="bg-[#161b22] border border-[#30363d] rounded-md p-4">
             <p className="block text-sm font-medium text-[#f0f6fc] mb-2">
               Image file
@@ -462,7 +463,7 @@ function GeneratePage() {
               />
             </label>
           </div>
-        )}
+        )} */}
 
         {/* フローティング生成ボタン */}
         {((activeTab === 'google' && selectedImage) ||
