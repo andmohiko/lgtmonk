@@ -120,14 +120,6 @@ function App() {
                       </p>
                     </div>
                   </div>
-                  {/* キーワード表示（あれば） */}
-                  {image.keyword && (
-                    <div className="p-2 border-t border-[#30363d]">
-                      <p className="text-xs text-[#8b949e] truncate">
-                        {image.keyword}
-                      </p>
-                    </div>
-                  )}
                 </button>
               ))}
             </div>
