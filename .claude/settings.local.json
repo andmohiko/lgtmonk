@@ -25,7 +25,6 @@
       "Bash(pnpm --filter @lgtmonk/functions run pre-build:*)",
       "Bash(pnpm --filter @lgtmonk/functions run lint:tsc:*)",
       "Bash(firebase functions:config:get:*)",
-      "Bash(firebase deploy:*)",
       "Bash(pnpm --filter @lgtmonk/web exec tsc:*)",
       "Bash(pnpm --filter @lgtmonk/web run build:client:*)",
       "Bash(pnpm --filter @lgtmonk/web add @radix-ui/react-dialog)"

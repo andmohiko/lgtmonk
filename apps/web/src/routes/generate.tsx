@@ -453,25 +453,27 @@ function GeneratePage() {
           </div>
         )}
 
-        {/* 生成ボタン */}
+        {/* フローティング生成ボタン */}
         {((activeTab === 'google' && selectedImage) ||
           (activeTab === 'upload' && uploadedImage)) && (
-          <div className="mt-4">
-            <button
-              type="button"
-              onClick={handleGenerate}
-              disabled={isGenerating}
-              className="w-full py-2.5 bg-[#238636] text-white text-sm font-medium rounded-md hover:bg-[#2ea043] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                'Generate LGTM Image'
-              )}
-            </button>
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#0d1117] via-[#0d1117]/95 to-transparent pointer-events-none">
+            <div className="max-w-4xl mx-auto pointer-events-auto">
+              <button
+                type="button"
+                onClick={handleGenerate}
+                disabled={isGenerating}
+                className="w-full py-3 bg-[#238636] text-white text-sm font-medium rounded-md hover:bg-[#2ea043] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 shadow-lg"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  'Generate LGTM Image'
+                )}
+              </button>
+            </div>
           </div>
         )}
       </div>
