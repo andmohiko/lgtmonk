@@ -19,7 +19,16 @@
       "Bash(gcloud services api-keys list:*)",
       "Bash(pnpm run pre-build:*)",
       "Bash(firebase functions:list:*)",
-      "Bash(firebase functions:log:*)"
+      "Bash(firebase functions:log:*)",
+      "Skill(cloud-functions-canvas-image)",
+      "Bash(pnpm run lint:tsc:*)",
+      "Bash(pnpm --filter @lgtmonk/functions run pre-build:*)",
+      "Bash(pnpm --filter @lgtmonk/functions run lint:tsc:*)",
+      "Bash(firebase functions:config:get:*)",
+      "Bash(firebase deploy:*)",
+      "Bash(pnpm --filter @lgtmonk/web exec tsc:*)",
+      "Bash(pnpm --filter @lgtmonk/web run build:client:*)",
+      "Bash(pnpm --filter @lgtmonk/web add @radix-ui/react-dialog)"
     ],
     "deny": [],
     "ask": []

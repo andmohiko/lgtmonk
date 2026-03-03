@@ -21,6 +21,12 @@ router.get(
   require('./api/searchImages/searchImages').handle,
 )
 
+router.post(
+  '/generateLgtmImage',
+  [check('keyword').exists().isString()],
+  require('./api/generateLgtmImage/generateLgtmImage').handle,
+)
+
 app.use(router)
 
 export default app
