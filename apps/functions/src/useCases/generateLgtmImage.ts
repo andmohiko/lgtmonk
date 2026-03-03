@@ -3,10 +3,20 @@ import sharp from 'sharp'
 import { v4 as uuidV4 } from 'uuid'
 import { fetchImageBufferFromUrl } from '../infrastructure/FetchImageBufferFromUrl'
 import { saveBufferToStorageOperation } from '../infrastructure/StorageOperation'
+import { registerWorkSansFonts } from '../utils/registerFonts'
 
 // 画像サイズの定数
 const CANVAS_WIDTH = 1200
 const CANVAS_HEIGHT = 630
+
+// フォントを初回のみ登録
+let fontsRegistered = false
+const ensureFontsRegistered = (): void => {
+  if (!fontsRegistered) {
+    registerWorkSansFonts()
+    fontsRegistered = true
+  }
+}
 
 /**
  * 外部URLの画像にLGTMテキストを合成してCloud Storageに保存する
@@ -23,6 +33,9 @@ export const generateLgtmImageFromUrl = async (
     keyword,
   })
 
+  // 0. フォントを登録（初回のみ）
+  ensureFontsRegistered()
+
   // 1. 外部URLから画像を取得
   const imageBuffer = await fetchImageBufferFromUrl(imageUrl)
 
@@ -34,16 +47,12 @@ export const generateLgtmImageFromUrl = async (
     })
     .toBuffer()
 
-  // 3. Canvasで半透明の背景レイヤーを作成（テキストの視認性向上）
+  // 3. Canvasで薄い黒レイヤーを作成
   const canvas = createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT)
   const ctx = canvas.getContext('2d')
 
-  // グラデーション背景（下部を暗くしてテキストを見やすく）
-  const gradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT)
-  gradient.addColorStop(0, 'rgba(0, 0, 0, 0)')
-  gradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.2)')
-  gradient.addColorStop(1, 'rgba(0, 0, 0, 0.6)')
-  ctx.fillStyle = gradient
+  // 薄い黒レイヤー（画像全体に均一に）
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
 
   const overlayBuffer = canvas.toBuffer('image/png')
@@ -56,31 +65,38 @@ export const generateLgtmImageFromUrl = async (
   const mainFontSize = 200
   const mainText = 'LGTM'
 
-  // テキストに影をつける（視認性向上）
-  textCtx.shadowColor = 'rgba(0, 0, 0, 0.8)'
-  textCtx.shadowBlur = 20
-  textCtx.shadowOffsetX = 5
-  textCtx.shadowOffsetY = 5
-
-  // LGTMテキスト描画（太いゴシック体）
-  textCtx.font = `900 ${mainFontSize}px "Arial Black", "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif`
+  // LGTMテキスト描画（Work Sans Black使用）
+  const mainFontSpec = `${mainFontSize}px "Work Sans Black"`
+  textCtx.font = mainFontSpec
+  console.log('[generateLgtmImage] Main text font set to:', mainFontSpec)
+  console.log('[generateLgtmImage] Actual font being used:', textCtx.font)
   textCtx.fillStyle = '#FFFFFF'
+  textCtx.strokeStyle = '#FFFFFF'
+  textCtx.lineWidth = 8 // 太い縁取りで文字を強調
   textCtx.textAlign = 'center'
   textCtx.textBaseline = 'middle'
+  textCtx.lineJoin = 'round' // 滑らかな線の結合
+  textCtx.miterLimit = 2
+
+  // 縦長になるのを防ぐため、水平方向に1.2倍に拡大
+  textCtx.save() // 現在の状態を保存
+  textCtx.translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30) // 描画位置に移動
+  textCtx.scale(1.2, 1) // 水平方向に1.2倍に拡大
+  textCtx.translate(-CANVAS_WIDTH / 2, -(CANVAS_HEIGHT / 2 - 30)) // 元の位置に戻す
+
+  // 縁取りを先に描画
+  textCtx.strokeText(mainText, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30)
+  // 塗りつぶしを上から描画
   textCtx.fillText(mainText, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30)
 
-  // "Looks Good To Me"の小さく細い文字
+  textCtx.restore() // 保存した状態に戻す
+
+  // "Looks Good To Me"の小さめの文字
   const subFontSize = 40
   const subText = 'Looks Good To Me'
 
-  // サブテキストの影（少し控えめに）
-  textCtx.shadowColor = 'rgba(0, 0, 0, 0.6)'
-  textCtx.shadowBlur = 10
-  textCtx.shadowOffsetX = 2
-  textCtx.shadowOffsetY = 2
-
-  // サブテキスト描画（細い文字）
-  textCtx.font = `300 ${subFontSize}px "Arial", "Hiragino Sans", sans-serif`
+  // サブテキスト描画（Work Sans Regular使用）
+  textCtx.font = `${subFontSize}px "Work Sans"`
   textCtx.fillStyle = '#FFFFFF'
   textCtx.textAlign = 'center'
   textCtx.textBaseline = 'top'
@@ -127,6 +143,9 @@ export const generateLgtmImageFromBase64 = async (
 ): Promise<string> => {
   console.log('[generateLgtmImage] Start generating LGTM image from base64')
 
+  // 0. フォントを登録（初回のみ）
+  ensureFontsRegistered()
+
   // Base64からBufferに変換
   const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '')
   const imageBuffer = Buffer.from(base64Data, 'base64')
@@ -139,15 +158,12 @@ export const generateLgtmImageFromBase64 = async (
     })
     .toBuffer()
 
-  // 3. Canvasで半透明の背景レイヤーを作成
+  // 3. Canvasで薄い黒レイヤーを作成
   const canvas = createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT)
   const ctx = canvas.getContext('2d')
 
-  const gradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT)
-  gradient.addColorStop(0, 'rgba(0, 0, 0, 0)')
-  gradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.2)')
-  gradient.addColorStop(1, 'rgba(0, 0, 0, 0.6)')
-  ctx.fillStyle = gradient
+  // 薄い黒レイヤー（画像全体に均一に）
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
 
   const overlayBuffer = canvas.toBuffer('image/png')
@@ -160,31 +176,38 @@ export const generateLgtmImageFromBase64 = async (
   const mainFontSize = 200
   const mainText = 'LGTM'
 
-  // テキストに影をつける（視認性向上）
-  textCtx.shadowColor = 'rgba(0, 0, 0, 0.8)'
-  textCtx.shadowBlur = 20
-  textCtx.shadowOffsetX = 5
-  textCtx.shadowOffsetY = 5
-
-  // LGTMテキスト描画（太いゴシック体）
-  textCtx.font = `900 ${mainFontSize}px "Arial Black", "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif`
+  // LGTMテキスト描画（Work Sans Black使用）
+  const mainFontSpec = `${mainFontSize}px "Work Sans Black"`
+  textCtx.font = mainFontSpec
+  console.log('[generateLgtmImage] Main text font set to:', mainFontSpec)
+  console.log('[generateLgtmImage] Actual font being used:', textCtx.font)
   textCtx.fillStyle = '#FFFFFF'
+  textCtx.strokeStyle = '#FFFFFF'
+  textCtx.lineWidth = 8 // 太い縁取りで文字を強調
   textCtx.textAlign = 'center'
   textCtx.textBaseline = 'middle'
+  textCtx.lineJoin = 'round' // 滑らかな線の結合
+  textCtx.miterLimit = 2
+
+  // 縦長になるのを防ぐため、水平方向に1.2倍に拡大
+  textCtx.save() // 現在の状態を保存
+  textCtx.translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30) // 描画位置に移動
+  textCtx.scale(1.2, 1) // 水平方向に1.2倍に拡大
+  textCtx.translate(-CANVAS_WIDTH / 2, -(CANVAS_HEIGHT / 2 - 30)) // 元の位置に戻す
+
+  // 縁取りを先に描画
+  textCtx.strokeText(mainText, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30)
+  // 塗りつぶしを上から描画
   textCtx.fillText(mainText, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30)
 
-  // "Looks Good To Me"の小さく細い文字
+  textCtx.restore() // 保存した状態に戻す
+
+  // "Looks Good To Me"の小さめの文字
   const subFontSize = 40
   const subText = 'Looks Good To Me'
 
-  // サブテキストの影（少し控えめに）
-  textCtx.shadowColor = 'rgba(0, 0, 0, 0.6)'
-  textCtx.shadowBlur = 10
-  textCtx.shadowOffsetX = 2
-  textCtx.shadowOffsetY = 2
-
-  // サブテキスト描画（細い文字）
-  textCtx.font = `300 ${subFontSize}px "Arial", "Hiragino Sans", sans-serif`
+  // サブテキスト描画（Work Sans Regular使用）
+  textCtx.font = `${subFontSize}px "Work Sans"`
   textCtx.fillStyle = '#FFFFFF'
   textCtx.textAlign = 'center'
   textCtx.textBaseline = 'top'

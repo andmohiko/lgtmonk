@@ -1,6 +1,7 @@
 ## Compiled JavaScript files
 **/*.js
 **/*.js.map
+lib/assets/fonts/
 
 # babel.config.js must be under version control
 !babel.config.js

@@ -1,4 +1,6 @@
 import { defineConfig } from 'tsup'
+import { cpSync } from 'fs'
+import { resolve } from 'path'
 
 export default defineConfig({
   entry: ['src/index.ts'],
@@ -14,5 +16,12 @@ export default defineConfig({
     options.alias = {
       '@lgtmonk/common': '../../packages/common/src',
     }
+  },
+  // ビルド後にフォントファイルをコピー
+  onSuccess: async () => {
+    const srcFonts = resolve(__dirname, 'src/assets/fonts')
+    const destFonts = resolve(__dirname, 'lib/assets/fonts')
+    cpSync(srcFonts, destFonts, { recursive: true })
+    console.log('✓ Fonts copied to lib/assets/fonts')
   },
 })

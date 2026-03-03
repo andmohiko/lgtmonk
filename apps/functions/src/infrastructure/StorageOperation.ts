@@ -26,9 +26,19 @@ export const saveBufferToStorageOperation = async (
     },
   })
 
-  // ファイルを公開設定にする
-  await fileRef.makePublic()
+  // エミュレーター環境ではmakePublicを呼ばない
+  const isEmulator = process.env.FUNCTIONS_EMULATOR === 'true'
+  if (!isEmulator) {
+    // ファイルを公開設定にする
+    await fileRef.makePublic()
+  }
 
   // 公開URLを返す
+  // エミュレーターの場合は localhost の URL を返す
+  if (isEmulator) {
+    const bucket = storageBucket.name
+    return `http://localhost:9199/v0/b/${bucket}/o/${encodeURIComponent(`${storagePath}/${file.fileName}`)}?alt=media`
+  }
+
   return fileRef.publicUrl()
 }
