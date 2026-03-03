@@ -129,16 +129,18 @@ function GeneratePage() {
 
     setIsGenerating(true)
     setErrorMessage(null)
+    setGeneratedImageUrl(null)
+    setIsDialogOpen(true) // ダイアログを開く
 
     try {
-      let generatedImageUrl: string
+      let imageUrl: string
 
       if (activeTab === 'google' && selectedImage) {
         // Google画像検索からの生成
         const { generateLgtmImageFromUrl } = await import(
           '@/lib/api/generateLgtmImage'
         )
-        generatedImageUrl = await generateLgtmImageFromUrl(
+        imageUrl = await generateLgtmImageFromUrl(
           selectedImage.imageUrl,
           keyword.trim(),
         )
@@ -147,7 +149,7 @@ function GeneratePage() {
         const { generateLgtmImageFromFile } = await import(
           '@/lib/api/generateLgtmImage'
         )
-        generatedImageUrl = await generateLgtmImageFromFile(
+        imageUrl = await generateLgtmImageFromFile(
           uploadedImage,
           '', // アップロードの場合はキーワードなし
         )
@@ -156,13 +158,14 @@ function GeneratePage() {
       }
 
       // Firestoreに保存
-      await saveGeneratedImageToFirestore(generatedImageUrl)
+      await saveGeneratedImageToFirestore(imageUrl)
 
-      // 成功メッセージを表示（TODO: 成功時のUIを実装）
-      console.log('LGTM画像が生成されました:', generatedImageUrl)
-      alert(`LGTM画像が生成されました！\n\n${generatedImageUrl}`)
+      // 生成された画像URLを設定
+      setGeneratedImageUrl(imageUrl)
+      console.log('LGTM画像が生成されました:', imageUrl)
     } catch (error) {
       console.error('LGTM画像生成エラー:', error)
+      setIsDialogOpen(false) // エラー時はダイアログを閉じる
       if (error instanceof Error) {
         setErrorMessage(error.message)
       } else {
@@ -472,6 +475,15 @@ function GeneratePage() {
           </div>
         )}
       </div>
+
+      {/* 画像生成ダイアログ */}
+      <GeneratingImageDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        isGenerating={isGenerating}
+        generatedImageUrl={generatedImageUrl}
+        keyword={activeTab === 'google' ? keyword.trim() : undefined}
+      />
     </div>
   )
 }

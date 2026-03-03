@@ -7,6 +7,7 @@ import type {
 import { imageCollection } from '@lgtmonk/common'
 import type { Unsubscribe } from 'firebase/firestore'
 import {
+  addDoc,
   collection,
   doc,
   getDoc,
@@ -16,7 +17,6 @@ import {
   onSnapshot,
   orderBy,
   query,
-  setDoc,
   updateDoc,
   where,
 } from 'firebase/firestore'
@@ -124,13 +124,13 @@ export const subscribeImageOperation = (
 }
 
 /**
- * 画像を作成（IDを指定）
+ * 画像を作成（IDは自動生成）
  */
 export const createImageOperation = async (
-  imageId: ImageId,
   dto: CreateImageDto,
-): Promise<void> => {
-  await setDoc(doc(db, imageCollection, imageId), dto)
+): Promise<ImageId> => {
+  const docRef = await addDoc(collection(db, imageCollection), dto)
+  return docRef.id
 }
 
 /**
