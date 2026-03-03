@@ -43,10 +43,26 @@ export const Route = createRootRoute({
         property: 'og:site_name',
         content: 'LGTMonk',
       },
+      {
+        property: 'og:image',
+        content: '/ogp.webp',
+      },
+      {
+        property: 'og:image:width',
+        content: '1200',
+      },
+      {
+        property: 'og:image:height',
+        content: '630',
+      },
       // Twitter Card meta tags
       {
         name: 'twitter:card',
         content: 'summary_large_image',
+      },
+      {
+        name: 'twitter:image',
+        content: '/ogp.webp',
       },
       {
         name: 'twitter:title',
