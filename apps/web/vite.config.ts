@@ -16,10 +16,12 @@ const config = defineConfig({
   preview: {
     port: process.env.PORT ? parseInt(process.env.PORT) : 8080,
     host: '0.0.0.0',
-    strictPort: true, // Fail if port is already in use
+    strictPort: true,
+    allowedHosts: ['all'], // Allow all hosts for Firebase App Hosting dynamic URLs
   },
   server: {
-    host: true, // Allow all hosts for Cloud Run dynamic URLs
+    host: true,
+    allowedHosts: ['all'], // Allow all hosts for Cloud Run dynamic URLs
   },
 })
 
