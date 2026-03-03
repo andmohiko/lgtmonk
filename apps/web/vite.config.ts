@@ -12,7 +12,13 @@ const config = defineConfig({
     devtools(),
     tsconfigPaths({ projects: ['./tsconfig.json'] }),
     tailwindcss(),
-    tanstackStart(),
+    tanstackStart({
+      server: {
+        // Cloud Run uses PORT environment variable
+        port: process.env.PORT ? parseInt(process.env.PORT) : 3000,
+        host: '0.0.0.0', // Listen on all network interfaces
+      },
+    }),
     viteReact(),
   ],
 })

@@ -1,0 +1,44 @@
+# Firebase App Hosting configuration for TanStack Start
+
+runConfig:
+  # Node.js runtime version
+  runtime: nodejs20
+
+  # CPU and memory allocation
+  cpu: 1
+  memoryMiB: 512
+
+  # Auto-scaling configuration
+  minInstances: 0  # Allow cold starts to save costs
+  maxInstances: 10
+  concurrency: 80
+
+  # Request timeout (in seconds)
+  timeoutSeconds: 60
+
+# Environment variables
+env:
+  - variable: NODE_ENV
+    value: production
+
+  # Firebase configuration (set these as secrets in Firebase Console)
+  - variable: VITE_FIREBASE_API_KEY
+    secret: firebase-api-key
+  - variable: VITE_FIREBASE_AUTH_DOMAIN
+    secret: firebase-auth-domain
+  - variable: VITE_FIREBASE_PROJECT_ID
+    secret: firebase-project-id
+  - variable: VITE_FIREBASE_STORAGE_BUCKET
+    secret: firebase-storage-bucket
+  - variable: VITE_FIREBASE_MESSAGING_SENDER_ID
+    secret: firebase-messaging-sender-id
+  - variable: VITE_FIREBASE_APP_ID
+    secret: firebase-app-id
+
+  # Cloud Functions URL
+  - variable: VITE_FIREBASE_FUNCTIONS_URL
+    secret: firebase-functions-url
+
+  # Brave Search API key
+  - variable: BRAVE_SEARCH_API_KEY
+    secret: brave-search-api-key
