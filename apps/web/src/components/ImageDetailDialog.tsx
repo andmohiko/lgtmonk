@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { incrementCopiedCountOperation } from '@/infrastructure/firestore/ImageOperations'
+import { logImageCopy } from '@/lib/analytics'
 
 type ImageDetailDialogProps = {
   image: Image | null
@@ -36,6 +37,9 @@ export function ImageDetailDialog({
 
       // コピーカウントをインクリメント
       await incrementCopiedCountOperation(image.imageId)
+
+      // Analyticsイベントを記録
+      logImageCopy(image.imageId, image.keyword)
     } catch (error) {
       console.error('コピーに失敗しました:', error)
       alert('コピーに失敗しました')

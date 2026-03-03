@@ -1,3 +1,5 @@
+import type { Analytics } from 'firebase/analytics'
+import { getAnalytics, isSupported } from 'firebase/analytics'
 import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 import {
@@ -36,9 +38,20 @@ if (typeof window !== 'undefined') {
   remoteConfig.settings.minimumFetchIntervalMillis = 60 * 1000 // 1min
 }
 
+// Analytics はクライアント側でのみ初期化
+let analytics: Analytics | null = null
+if (typeof window !== 'undefined') {
+  // ブラウザが Analytics をサポートしているかチェック
+  isSupported().then((supported) => {
+    if (supported) {
+      analytics = getAnalytics(firebaseApp)
+    }
+  })
+}
+
 // エミュレーター接続（開発環境）
 if (import.meta.env.VITE_USE_EMULATOR === 'true') {
   connectFirestoreEmulator(db, 'localhost', 8080)
 }
 
-export { auth, db, serverTimestamp, storage, remoteConfig }
+export { auth, db, serverTimestamp, storage, remoteConfig, analytics }

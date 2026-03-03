@@ -16,7 +16,8 @@ export const Header = () => {
               </h1>
             </Link>
             <p className="text-sm text-[#8b949e] mt-1">
-              GitHub のプルリクエストに貼る LGTM 画像を、手軽に生成・検索・コピー
+              GitHub のプルリクエストに貼る LGTM
+              画像を、手軽に生成・検索・コピー
             </p>
           </div>
           {isGeneratePage ? (

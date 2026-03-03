@@ -1,8 +1,12 @@
-import { TanStackDevtools } from '@tanstack/react-devtools'
-import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
+import {
+  createRootRoute,
+  HeadContent,
+  Outlet,
+  Scripts,
+} from '@tanstack/react-router'
 
 import { Header } from '../components/layout/Header'
+import { usePageTracking } from '../hooks/usePageTracking'
 import appCss from '../styles.css?url'
 
 export const Route = createRootRoute({
@@ -65,6 +69,9 @@ export const Route = createRootRoute({
 })
 
 function RootLayout() {
+  // ページ遷移の追跡
+  usePageTracking()
+
   return (
     <div className="flex min-h-screen flex-col bg-[#0d1117]">
       <Header />
@@ -83,17 +90,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body suppressHydrationWarning>
         {children}
-        <TanStackDevtools
-          config={{
-            position: 'bottom-right',
-          }}
-          plugins={[
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
         <Scripts />
       </body>
     </html>

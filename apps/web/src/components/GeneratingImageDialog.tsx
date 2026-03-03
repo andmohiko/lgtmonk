@@ -43,7 +43,9 @@ export function GeneratingImageDialog({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isGenerating ? 'Generating LGTM Image...' : 'LGTM Image Generated!'}
+            {isGenerating
+              ? 'Generating LGTM Image...'
+              : 'LGTM Image Generated!'}
           </DialogTitle>
           {keyword && !isGenerating && (
             <DialogDescription>Keyword: {keyword}</DialogDescription>

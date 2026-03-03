@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 import { GeneratingImageDialog } from '@/components/GeneratingImageDialog'
+import { logImageGenerate, logSearch } from '@/lib/analytics'
 import type { SearchResultImage } from '@/types/image'
 
 export const Route = createFileRoute('/generate')({
@@ -96,6 +97,9 @@ function GeneratePage() {
       // キャッシュに保存
       searchCacheRef.current.set(trimmedKeyword, results)
 
+      // 検索イベントを記録
+      logSearch(trimmedKeyword, results.length)
+
       if (results.length === 0) {
         setErrorMessage('検索結果が見つかりませんでした')
       }
@@ -159,6 +163,13 @@ function GeneratePage() {
 
       // Firestoreに保存
       await saveGeneratedImageToFirestore(imageUrl)
+
+      // Analyticsイベントを記録
+      if (activeTab === 'google') {
+        logImageGenerate('search', keyword.trim())
+      } else {
+        logImageGenerate('upload')
+      }
 
       // 生成された画像URLを設定
       setGeneratedImageUrl(imageUrl)

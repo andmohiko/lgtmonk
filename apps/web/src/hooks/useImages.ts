@@ -5,6 +5,7 @@ import {
   fetchRandomImagesOperation,
   IMAGES_PAGE_SIZE,
 } from '@/infrastructure/firestore/ImageOperations'
+import { logTabChange } from '@/lib/analytics'
 
 export type DisplayMode = 'latest' | 'random' | 'favorites'
 
@@ -73,6 +74,8 @@ export const useImages = (): UseImagesReturn => {
   // 初回マウント時とdisplayMode変更時に画像を取得
   useEffect(() => {
     fetchImages(displayMode)
+    // タブ変更時にAnalyticsイベントを記録（初回マウント以外）
+    logTabChange(displayMode)
   }, [displayMode, fetchImages])
 
   return {
