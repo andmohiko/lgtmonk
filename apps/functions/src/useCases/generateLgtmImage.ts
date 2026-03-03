@@ -62,8 +62,10 @@ export const generateLgtmImageFromUrl = async (
   const textCtx = textCanvas.getContext('2d')
 
   // LGTMの大きな文字
-  const mainFontSize = 200
+  const mainFontSize = 250
   const mainText = 'LGTM'
+  const mainLetterSpacing = 40 // メインテキストのletter spacing
+  const mainTextYPosition = CANVAS_HEIGHT / 2 + 0 // 30px下に移動（-30 + 50 - 20 = +0）
 
   // LGTMテキスト描画（Work Sans Black使用）
   const mainFontSpec = `${mainFontSize}px "Work Sans Black"`
@@ -72,7 +74,7 @@ export const generateLgtmImageFromUrl = async (
   console.log('[generateLgtmImage] Actual font being used:', textCtx.font)
   textCtx.fillStyle = '#FFFFFF'
   textCtx.strokeStyle = '#FFFFFF'
-  textCtx.lineWidth = 8 // 太い縁取りで文字を強調
+  textCtx.lineWidth = 12 // より太い縁取りで文字を強調（8 → 16）
   textCtx.textAlign = 'center'
   textCtx.textBaseline = 'middle'
   textCtx.lineJoin = 'round' // 滑らかな線の結合
@@ -80,27 +82,65 @@ export const generateLgtmImageFromUrl = async (
 
   // 縦長になるのを防ぐため、水平方向に1.2倍に拡大
   textCtx.save() // 現在の状態を保存
-  textCtx.translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30) // 描画位置に移動
+  textCtx.translate(CANVAS_WIDTH / 2, mainTextYPosition) // 描画位置に移動
   textCtx.scale(1.2, 1) // 水平方向に1.2倍に拡大
-  textCtx.translate(-CANVAS_WIDTH / 2, -(CANVAS_HEIGHT / 2 - 30)) // 元の位置に戻す
+  textCtx.translate(-CANVAS_WIDTH / 2, -mainTextYPosition) // 元の位置に戻す
 
-  // 縁取りを先に描画
-  textCtx.strokeText(mainText, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30)
-  // 塗りつぶしを上から描画
-  textCtx.fillText(mainText, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30)
+  // letter spacingを適用して文字を個別に描画
+  const mainTextWidth = Array.from(mainText).reduce(
+    (acc, char) => acc + textCtx.measureText(char).width + mainLetterSpacing,
+    -mainLetterSpacing, // 最後の文字の後のスペースを除く
+  )
+  let mainCurrentX = CANVAS_WIDTH / 2 - mainTextWidth / 2
+
+  Array.from(mainText).forEach((char) => {
+    const charWidth = textCtx.measureText(char).width
+    // 縁取りを先に描画
+    textCtx.strokeText(char, mainCurrentX + charWidth / 2, mainTextYPosition)
+    // 塗りつぶしを上から描画
+    textCtx.fillText(char, mainCurrentX + charWidth / 2, mainTextYPosition)
+    mainCurrentX += charWidth + mainLetterSpacing
+  })
 
   textCtx.restore() // 保存した状態に戻す
 
   // "Looks Good To Me"の小さめの文字
   const subFontSize = 40
   const subText = 'Looks Good To Me'
+  const subTextYPosition = CANVAS_HEIGHT / 2 + 150 // 30px下に移動（120 + 50 - 20 = 150）
 
   // サブテキスト描画（Work Sans Regular使用）
   textCtx.font = `${subFontSize}px "Work Sans"`
   textCtx.fillStyle = '#FFFFFF'
   textCtx.textAlign = 'center'
   textCtx.textBaseline = 'top'
-  textCtx.fillText(subText, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 120)
+
+  // メインテキストの横幅に合わせてletter spacingを調整
+  // まず、letter spacingなしでの横幅を計算
+  const subTextChars = Array.from(subText)
+  const subTextWidthWithoutSpacing = subTextChars.reduce(
+    (acc, char) => acc + textCtx.measureText(char).width,
+    0,
+  )
+  // メインテキストの横幅に合わせるために必要なletter spacing（少し狭めに調整）
+  const adjustedSubLetterSpacing =
+    ((mainTextWidth * 1.2 - subTextWidthWithoutSpacing) /
+      (subTextChars.length - 1)) *
+    0.85 // 0.85倍してletter spacingを狭める
+
+  // letter spacingを適用して文字を個別に描画
+  const subTextWidth = subTextChars.reduce(
+    (acc, char) =>
+      acc + textCtx.measureText(char).width + adjustedSubLetterSpacing,
+    -adjustedSubLetterSpacing, // 最後の文字の後のスペースを除く
+  )
+  let subCurrentX = CANVAS_WIDTH / 2 - subTextWidth / 2
+
+  subTextChars.forEach((char) => {
+    const charWidth = textCtx.measureText(char).width
+    textCtx.fillText(char, subCurrentX + charWidth / 2, subTextYPosition)
+    subCurrentX += charWidth + adjustedSubLetterSpacing
+  })
 
   const textBuffer = textCanvas.toBuffer('image/png')
 
@@ -173,8 +213,10 @@ export const generateLgtmImageFromBase64 = async (
   const textCtx = textCanvas.getContext('2d')
 
   // LGTMの大きな文字
-  const mainFontSize = 200
+  const mainFontSize = 250
   const mainText = 'LGTM'
+  const mainLetterSpacing = 40 // メインテキストのletter spacing
+  const mainTextYPosition = CANVAS_HEIGHT / 2 + 0 // 30px下に移動（-30 + 50 - 20 = +0）
 
   // LGTMテキスト描画（Work Sans Black使用）
   const mainFontSpec = `${mainFontSize}px "Work Sans Black"`
@@ -183,7 +225,7 @@ export const generateLgtmImageFromBase64 = async (
   console.log('[generateLgtmImage] Actual font being used:', textCtx.font)
   textCtx.fillStyle = '#FFFFFF'
   textCtx.strokeStyle = '#FFFFFF'
-  textCtx.lineWidth = 8 // 太い縁取りで文字を強調
+  textCtx.lineWidth = 16 // より太い縁取りで文字を強調（8 → 16）
   textCtx.textAlign = 'center'
   textCtx.textBaseline = 'middle'
   textCtx.lineJoin = 'round' // 滑らかな線の結合
@@ -191,27 +233,65 @@ export const generateLgtmImageFromBase64 = async (
 
   // 縦長になるのを防ぐため、水平方向に1.2倍に拡大
   textCtx.save() // 現在の状態を保存
-  textCtx.translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30) // 描画位置に移動
+  textCtx.translate(CANVAS_WIDTH / 2, mainTextYPosition) // 描画位置に移動
   textCtx.scale(1.2, 1) // 水平方向に1.2倍に拡大
-  textCtx.translate(-CANVAS_WIDTH / 2, -(CANVAS_HEIGHT / 2 - 30)) // 元の位置に戻す
+  textCtx.translate(-CANVAS_WIDTH / 2, -mainTextYPosition) // 元の位置に戻す
 
-  // 縁取りを先に描画
-  textCtx.strokeText(mainText, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30)
-  // 塗りつぶしを上から描画
-  textCtx.fillText(mainText, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30)
+  // letter spacingを適用して文字を個別に描画
+  const mainTextWidth = Array.from(mainText).reduce(
+    (acc, char) => acc + textCtx.measureText(char).width + mainLetterSpacing,
+    -mainLetterSpacing, // 最後の文字の後のスペースを除く
+  )
+  let mainCurrentX = CANVAS_WIDTH / 2 - mainTextWidth / 2
+
+  Array.from(mainText).forEach((char) => {
+    const charWidth = textCtx.measureText(char).width
+    // 縁取りを先に描画
+    textCtx.strokeText(char, mainCurrentX + charWidth / 2, mainTextYPosition)
+    // 塗りつぶしを上から描画
+    textCtx.fillText(char, mainCurrentX + charWidth / 2, mainTextYPosition)
+    mainCurrentX += charWidth + mainLetterSpacing
+  })
 
   textCtx.restore() // 保存した状態に戻す
 
   // "Looks Good To Me"の小さめの文字
   const subFontSize = 40
   const subText = 'Looks Good To Me'
+  const subTextYPosition = CANVAS_HEIGHT / 2 + 150 // 30px下に移動（120 + 50 - 20 = 150）
 
   // サブテキスト描画（Work Sans Regular使用）
   textCtx.font = `${subFontSize}px "Work Sans"`
   textCtx.fillStyle = '#FFFFFF'
   textCtx.textAlign = 'center'
   textCtx.textBaseline = 'top'
-  textCtx.fillText(subText, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 120)
+
+  // メインテキストの横幅に合わせてletter spacingを調整
+  // まず、letter spacingなしでの横幅を計算
+  const subTextChars = Array.from(subText)
+  const subTextWidthWithoutSpacing = subTextChars.reduce(
+    (acc, char) => acc + textCtx.measureText(char).width,
+    0,
+  )
+  // メインテキストの横幅に合わせるために必要なletter spacing（少し狭めに調整）
+  const adjustedSubLetterSpacing =
+    ((mainTextWidth * 1.2 - subTextWidthWithoutSpacing) /
+      (subTextChars.length - 1)) *
+    0.85 // 0.85倍してletter spacingを狭める
+
+  // letter spacingを適用して文字を個別に描画
+  const subTextWidth = subTextChars.reduce(
+    (acc, char) =>
+      acc + textCtx.measureText(char).width + adjustedSubLetterSpacing,
+    -adjustedSubLetterSpacing, // 最後の文字の後のスペースを除く
+  )
+  let subCurrentX = CANVAS_WIDTH / 2 - subTextWidth / 2
+
+  subTextChars.forEach((char) => {
+    const charWidth = textCtx.measureText(char).width
+    textCtx.fillText(char, subCurrentX + charWidth / 2, subTextYPosition)
+    subCurrentX += charWidth + adjustedSubLetterSpacing
+  })
 
   const textBuffer = textCanvas.toBuffer('image/png')
 
