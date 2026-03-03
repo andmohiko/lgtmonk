@@ -17,11 +17,17 @@ const config = defineConfig({
     port: process.env.PORT ? parseInt(process.env.PORT) : 8080,
     host: '0.0.0.0',
     strictPort: true,
-    allowedHosts: ['all'], // Allow all hosts for Firebase App Hosting dynamic URLs
+    allowedHosts: [
+      't-1536140864---lgtmonk-d7ny3y5ita-de.a.run.app',
+      'lgtm.mnhr.dev',
+    ],
   },
   server: {
     host: true,
-    allowedHosts: ['all'], // Allow all hosts for Cloud Run dynamic URLs
+    allowedHosts: [
+      't-1536140864---lgtmonk-d7ny3y5ita-de.a.run.app',
+      'lgtm.mnhr.dev',
+    ],
   },
 })
 
