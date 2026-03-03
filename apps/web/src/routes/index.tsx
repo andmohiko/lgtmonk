@@ -107,11 +107,11 @@ function App() {
                   className="group relative bg-[#161b22] border border-[#30363d] rounded-md overflow-hidden hover:border-[#58a6ff] transition-all cursor-pointer text-left"
                 >
                   {/* 画像 */}
-                  <div className="aspect-square relative">
+                  <div className="aspect-square relative bg-[#0d1117]">
                     <img
                       src={image.imageUrl}
                       alt={image.keyword || 'LGTM Image'}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
                     {/* ホバー時のオーバーレイ */}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
