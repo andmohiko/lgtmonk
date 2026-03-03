@@ -1,4 +1,8 @@
 # Firebase App Hosting configuration for TanStack Start
+#
+# For monorepo setup:
+# - The build script in root package.json now uses pnpm filter instead of turbo
+# - This allows building without turbo being installed in production
 
 runConfig:
   # Node.js runtime version
