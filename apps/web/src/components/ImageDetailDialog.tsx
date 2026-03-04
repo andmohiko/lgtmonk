@@ -51,9 +51,9 @@ export function ImageDetailDialog({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>LGTM Image</DialogTitle>
-          {image.keyword && (
-            <DialogDescription>Keyword: {image.keyword}</DialogDescription>
-          )}
+          <DialogDescription>
+            画像をクリップボードにコピーして使用できます
+          </DialogDescription>
         </DialogHeader>
 
         {/* 画像表示 */}
@@ -139,6 +139,18 @@ export function ImageDetailDialog({
             </div>
           </div>
         </div>
+
+        {/* キーワード表示 */}
+        {image.keyword && (
+          <div className="bg-[#161b22] border border-[#30363d] rounded-md px-4 py-3">
+            <p className="text-sm text-[#8b949e]">
+              キーワード:{' '}
+              <span className="text-[#c9d1d9] font-medium">
+                {image.keyword}
+              </span>
+            </p>
+          </div>
+        )}
 
         {/* 統計情報（オプション） */}
         <div className="flex gap-4 text-xs text-[#8b949e] pt-4 border-t border-[#30363d]">
