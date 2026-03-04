@@ -1,6 +1,6 @@
 import type { Image } from '@lgtmonk/common'
 import { Check, Copy } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { incrementCopiedCountOperation } from '@/infrastructure/firestore/ImageOperations'
+import {
+  incrementCopiedCountOperation,
+  incrementImpressionCountOperation,
+} from '@/infrastructure/firestore/ImageOperations'
 import { logImageCopy } from '@/lib/analytics'
 
 type ImageDetailDialogProps = {
@@ -23,6 +26,15 @@ export function ImageDetailDialog({
   onOpenChange,
 }: ImageDetailDialogProps) {
   const [copiedType, setCopiedType] = useState<'url' | 'markdown' | null>(null)
+
+  // モーダルが開いたときに表示回数をインクリメント
+  useEffect(() => {
+    if (open && image) {
+      incrementImpressionCountOperation(image.imageId).catch((error) => {
+        console.error('表示回数のインクリメントに失敗しました:', error)
+      })
+    }
+  }, [open, image])
 
   if (!image) return null
 
