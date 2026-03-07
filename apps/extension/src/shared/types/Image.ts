@@ -12,5 +12,6 @@ export type Image = {
   imageUrl: string
   impressionCount: number
   keyword: string
+  random?: number // ランダム取得用フィールド（0〜1の一様乱数、既存データには存在しない可能性あり）
   updatedAt: Date
 }

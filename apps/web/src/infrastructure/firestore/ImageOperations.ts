@@ -5,7 +5,7 @@ import type {
   UpdateImageDto,
 } from '@lgtmonk/common'
 import { imageCollection } from '@lgtmonk/common'
-import type { Unsubscribe } from 'firebase/firestore'
+import type { DocumentSnapshot, Unsubscribe } from 'firebase/firestore'
 import {
   addDoc,
   collection,
@@ -29,7 +29,7 @@ import { convertDate } from '@/utils/convertDate'
 const dateColumns = ['createdAt', 'updatedAt'] as const satisfies Array<string>
 
 // 1ページあたりの取得件数を定数で定義
-export const IMAGES_PAGE_SIZE = 50
+export const IMAGES_PAGE_SIZE = 20
 
 /**
  * 最新順で画像を取得
@@ -74,28 +74,76 @@ export const fetchImagesByKeywordOperation = async (
 }
 
 /**
+ * pivotの直後のドキュメントを1件取得する
+ * 終端を超えた場合はpivot=0でラップアラウンドする
+ */
+const fetchOneAfterPivot = async (pivot: number): Promise<DocumentSnapshot | null> => {
+  const q = query(
+    collection(db, imageCollection),
+    where('random', '>=', pivot),
+    orderBy('random'),
+    limit(1),
+  )
+  const snap = await getDocs(q)
+
+  if (!snap.empty) {
+    return snap.docs[0]
+  }
+
+  // ラップアラウンド
+  const q2 = query(
+    collection(db, imageCollection),
+    orderBy('random'),
+    limit(1),
+  )
+  const snap2 = await getDocs(q2)
+  return snap2.empty ? null : snap2.docs[0]
+}
+
+/**
  * ランダムに画像を取得
- * 注: Firestoreには真のランダム取得がないため、全件取得後にシャッフル
- * 本番環境では工夫が必要（例: ランダムフィールドを追加するなど）
+ * randomフィールド（0〜1の一様乱数）を活用した最適化アルゴリズム
+ * - pageSize * 1.5件の独立したpivot値を生成して取得
+ * - 重複を排除してpageSize件を返却
+ * - 既存データ（randomフィールドなし）への後方互換性あり
  */
 export const fetchRandomImagesOperation = async (
   pageSize: number = IMAGES_PAGE_SIZE,
 ): Promise<Array<Image>> => {
-  const snapshot = await getDocs(
-    query(collection(db, imageCollection), limit(pageSize * 2)),
-  )
+  // 重複回避のため、pageSize * 1.5件取得（20件必要なら30件取得）
+  const fetchCount = Math.ceil(pageSize * 1.5)
+  const fetchedIds = new Set<string>()
+  const results: Array<DocumentSnapshot> = []
 
-  const images = snapshot.docs.map((doc) => ({
-    imageId: doc.id,
-    ...convertDate(doc.data(), dateColumns),
-  })) as Array<Image>
+  // 最大試行回数（無限ループ防止）
+  const maxAttempts = fetchCount * 2
+  let attempts = 0
 
-  // シャッフル（Fisher-Yatesアルゴリズム）
-  for (let i = images.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[images[i], images[j]] = [images[j], images[i]]
+  while (results.length < fetchCount && attempts < maxAttempts) {
+    const pivot = Math.random()
+    const docSnapshot = await fetchOneAfterPivot(pivot)
+
+    if (docSnapshot && !fetchedIds.has(docSnapshot.id)) {
+      fetchedIds.add(docSnapshot.id)
+      results.push(docSnapshot)
+    }
+
+    attempts++
   }
 
+  // DocumentSnapshotをImage型に変換
+  const images = results.map((doc) => {
+    const data = doc.data()
+    if (!data) {
+      throw new Error('Document data is undefined')
+    }
+    return {
+      imageId: doc.id,
+      ...convertDate(data, dateColumns),
+    }
+  }) as Array<Image>
+
+  // 重複排除後、pageSize件に制限して返却
   return images.slice(0, pageSize)
 }
 

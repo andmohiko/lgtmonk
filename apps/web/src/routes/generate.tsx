@@ -1,11 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import {
-  Check,
-  Image as ImageIcon,
-  Loader2,
-  Search,
-  Upload,
-} from 'lucide-react'
+import { Check, Loader2, Search } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 import { GeneratingImageDialog } from '@/components/GeneratingImageDialog'
 import { logImageGenerate, logSearch } from '@/lib/analytics'
@@ -28,8 +22,8 @@ function GeneratePage() {
     null,
   )
   const [isGenerating, setIsGenerating] = useState(false)
-  const [uploadedImage, setUploadedImage] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  // アップロード機能は将来実装予定のため、型定義のみ残す
+  const uploadedImage = null
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
     null,
@@ -213,6 +207,7 @@ function GeneratePage() {
         imageUrl,
         impressionCount: 0,
         keyword: activeTab === 'google' ? keyword.trim() : '',
+        random: Math.random(), // ランダム取得用フィールド（0〜1の一様乱数）
         createdAt: serverTimestamp,
         updatedAt: serverTimestamp,
       })
@@ -262,27 +257,6 @@ function GeneratePage() {
       // 生成履歴の保存失敗はエラーとして扱わない（メイン処理は成功）
       console.warn('生成履歴の保存に失敗しましたが、処理を続行します')
     }
-  }
-
-  // 画像アップロード処理
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    // ファイルサイズチェック（10MB以下）
-    if (file.size > 10 * 1024 * 1024) {
-      alert('ファイルサイズは10MB以下にしてください')
-      return
-    }
-
-    // ファイルタイプチェック
-    if (!file.type.match(/^image\/(jpeg|png|webp|gif)$/)) {
-      alert('JPEG、PNG、WebP、GIF形式の画像のみ対応しています')
-      return
-    }
-
-    setUploadedImage(file)
-    setPreviewUrl(URL.createObjectURL(file))
   }
 
   return (

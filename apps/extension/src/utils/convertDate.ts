@@ -8,7 +8,7 @@ import type { DocumentData } from 'firebase/firestore'
  */
 export function convertDate(
   snapshot: DocumentData,
-  targetKey: Array<string>,
+  targetKey: ReadonlyArray<string>,
 ): DocumentData {
   for (const key of targetKey) {
     const value = snapshot[key]

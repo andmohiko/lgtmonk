@@ -30,7 +30,8 @@
       "Bash(pnpm --filter @lgtmonk/web add @radix-ui/react-dialog)",
       "WebFetch(domain:firebase.google.com)",
       "WebSearch",
-      "Bash(pnpm check:*)"
+      "Bash(pnpm check:*)",
+      "Bash(pnpm --filter @lgtmonk/extension exec tsc:*)"
     ],
     "deny": [],
     "ask": []

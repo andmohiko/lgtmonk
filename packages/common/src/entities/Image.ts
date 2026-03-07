@@ -16,12 +16,17 @@ export type Image = {
   imageUrl: string
   impressionCount: number
   keyword: string // 生成時の検索キーワード（アップロード時は空文字）
+  random?: number // ランダム取得用フィールド（0〜1の一様乱数、既存データには存在しない可能性あり）
   updatedAt: Date
 }
 
 // 作成用DTO（IDとタイムスタンプを除く）
-export type CreateImageDto = Omit<Image, 'imageId' | 'createdAt' | 'updatedAt'> & {
+export type CreateImageDto = Omit<
+  Image,
+  'imageId' | 'createdAt' | 'updatedAt' | 'random'
+> & {
   createdAt: FieldValue // serverTimestamp()を使用
+  random: number // ランダム取得用（0〜1の一様乱数）
   updatedAt: FieldValue
 }
 
