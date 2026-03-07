@@ -35,17 +35,37 @@ export const generateLgtmImageFromUrl = async (
   // 1. 外部URLから画像を取得
   const imageBuffer = await fetchImageBufferFromUrl(imageUrl)
 
-  // 2. 元画像のメタデータを取得（サイズとアスペクト比を保持）
+  // 2. 元画像のメタデータを取得
   const metadata = await sharp(imageBuffer).metadata()
-  const imageWidth = metadata.width || 1200
-  const imageHeight = metadata.height || 630
+  const originalWidth = metadata.width || 1200
+  const originalHeight = metadata.height || 630
 
   console.log('[generateLgtmImage] Original image size:', {
-    width: imageWidth,
-    height: imageHeight,
+    width: originalWidth,
+    height: originalHeight,
   })
 
-  // 3. Canvasで薄い黒レイヤーを作成（元画像と同じサイズ）
+  // 3. 画像サイズを最大1200pxに制限（アスペクト比を保持）
+  const MAX_SIZE = 1200
+  const maxDimension = Math.max(originalWidth, originalHeight)
+  let imageWidth = originalWidth
+  let imageHeight = originalHeight
+
+  if (maxDimension > MAX_SIZE) {
+    const scale = MAX_SIZE / maxDimension
+    imageWidth = Math.round(originalWidth * scale)
+    imageHeight = Math.round(originalHeight * scale)
+
+    console.log('[generateLgtmImage] Resizing image:', {
+      originalWidth,
+      originalHeight,
+      newWidth: imageWidth,
+      newHeight: imageHeight,
+      scale,
+    })
+  }
+
+  // 4. Canvasで薄い黒レイヤーを作成（リサイズ後のサイズ）
   const canvas = createCanvas(imageWidth, imageHeight)
   const ctx = canvas.getContext('2d')
 
@@ -55,7 +75,7 @@ export const generateLgtmImageFromUrl = async (
 
   const overlayBuffer = canvas.toBuffer('image/png')
 
-  // 4. Canvasで「LGTM」テキストを描画（元画像と同じサイズ）
+  // 5. Canvasで「LGTM」テキストを描画（リサイズ後のサイズ）
   const textCanvas = createCanvas(imageWidth, imageHeight)
   const textCtx = textCanvas.getContext('2d')
 
@@ -175,8 +195,18 @@ export const generateLgtmImageFromUrl = async (
 
   const textBuffer = textCanvas.toBuffer('image/png')
 
-  // 5. Sharpですべてのレイヤーを合成
-  const outputBuffer = await sharp(imageBuffer)
+  // 6. 元画像をリサイズしてからレイヤーを合成
+  let resizedImageBuffer = imageBuffer
+  if (maxDimension > MAX_SIZE) {
+    resizedImageBuffer = await sharp(imageBuffer)
+      .resize(imageWidth, imageHeight, {
+        fit: 'inside',
+        withoutEnlargement: true,
+      })
+      .toBuffer()
+  }
+
+  const outputBuffer = await sharp(resizedImageBuffer)
     .composite([
       { input: overlayBuffer, top: 0, left: 0 }, // 半透明オーバーレイ
       { input: textBuffer, top: 0, left: 0 }, // LGTMテキスト
@@ -186,7 +216,7 @@ export const generateLgtmImageFromUrl = async (
 
   console.log('[generateLgtmImage] Image composition completed')
 
-  // 6. Cloud Storageに保存
+  // 7. Cloud Storageに保存
   const fileName = `lgtm_${uuidV4()}.webp`
   const imagePublicUrl = await saveBufferToStorageOperation(
     {
@@ -221,17 +251,37 @@ export const generateLgtmImageFromBase64 = async (
   const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '')
   const imageBuffer = Buffer.from(base64Data, 'base64')
 
-  // 2. 元画像のメタデータを取得（サイズとアスペクト比を保持）
+  // 2. 元画像のメタデータを取得
   const metadata = await sharp(imageBuffer).metadata()
-  const imageWidth = metadata.width || 1200
-  const imageHeight = metadata.height || 630
+  const originalWidth = metadata.width || 1200
+  const originalHeight = metadata.height || 630
 
   console.log('[generateLgtmImage] Original image size:', {
-    width: imageWidth,
-    height: imageHeight,
+    width: originalWidth,
+    height: originalHeight,
   })
 
-  // 3. Canvasで薄い黒レイヤーを作成（元画像と同じサイズ）
+  // 3. 画像サイズを最大1200pxに制限（アスペクト比を保持）
+  const MAX_SIZE = 1200
+  const maxDimension = Math.max(originalWidth, originalHeight)
+  let imageWidth = originalWidth
+  let imageHeight = originalHeight
+
+  if (maxDimension > MAX_SIZE) {
+    const scale = MAX_SIZE / maxDimension
+    imageWidth = Math.round(originalWidth * scale)
+    imageHeight = Math.round(originalHeight * scale)
+
+    console.log('[generateLgtmImage] Resizing image:', {
+      originalWidth,
+      originalHeight,
+      newWidth: imageWidth,
+      newHeight: imageHeight,
+      scale,
+    })
+  }
+
+  // 4. Canvasで薄い黒レイヤーを作成（リサイズ後のサイズ）
   const canvas = createCanvas(imageWidth, imageHeight)
   const ctx = canvas.getContext('2d')
 
@@ -241,7 +291,7 @@ export const generateLgtmImageFromBase64 = async (
 
   const overlayBuffer = canvas.toBuffer('image/png')
 
-  // 4. Canvasで「LGTM」テキストを描画（元画像と同じサイズ）
+  // 5. Canvasで「LGTM」テキストを描画（リサイズ後のサイズ）
   const textCanvas = createCanvas(imageWidth, imageHeight)
   const textCtx = textCanvas.getContext('2d')
 
@@ -361,8 +411,18 @@ export const generateLgtmImageFromBase64 = async (
 
   const textBuffer = textCanvas.toBuffer('image/png')
 
-  // 5. Sharpですべてのレイヤーを合成
-  const outputBuffer = await sharp(imageBuffer)
+  // 6. 元画像をリサイズしてからレイヤーを合成
+  let resizedImageBuffer = imageBuffer
+  if (maxDimension > MAX_SIZE) {
+    resizedImageBuffer = await sharp(imageBuffer)
+      .resize(imageWidth, imageHeight, {
+        fit: 'inside',
+        withoutEnlargement: true,
+      })
+      .toBuffer()
+  }
+
+  const outputBuffer = await sharp(resizedImageBuffer)
     .composite([
       { input: overlayBuffer, top: 0, left: 0 }, // 半透明オーバーレイ
       { input: textBuffer, top: 0, left: 0 }, // LGTMテキスト
@@ -372,7 +432,7 @@ export const generateLgtmImageFromBase64 = async (
 
   console.log('[generateLgtmImage] Image composition completed')
 
-  // 6. Cloud Storageに保存
+  // 7. Cloud Storageに保存
   const fileName = `lgtm_${uuidV4()}.webp`
   const imagePublicUrl = await saveBufferToStorageOperation(
     {
