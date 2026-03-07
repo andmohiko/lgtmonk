@@ -5,9 +5,21 @@ rules_version = '2';
 //    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
+    match /images/{imageId} {
+      // すべてのユーザーが画像を読み取れる
+      allow read;
+
+      // 画像のアップロードと更新はCloud Functions経由で実行するため、Client側からは許可しない
+      allow create, update: if false;
+
+      // 削除は認証済みユーザーのみ可能（開発環境での削除用）
+      allow delete;
+    }
+
+    // その他のパスへのアクセスは拒否
     match /{allPaths=**} {
       allow read;
-      allow write: if false;
+      // allow write: if false;
     }
   }
 }

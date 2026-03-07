@@ -1,5 +1,5 @@
 import type { Image } from '@lgtmonk/common'
-import { Check, Copy } from 'lucide-react'
+import { Check, Copy, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import {
   Dialog,
@@ -8,6 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { useDeleteImageMutation } from '@/hooks/useDeleteImageMutation'
+import { useIsLocal } from '@/hooks/useIsLocal'
 import {
   incrementCopiedCountOperation,
   incrementImpressionCountOperation,
@@ -18,14 +20,18 @@ type ImageDetailDialogProps = {
   image: Image | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  onDelete?: () => void
 }
 
 export function ImageDetailDialog({
   image,
   open,
   onOpenChange,
+  onDelete,
 }: ImageDetailDialogProps) {
   const [copiedType, setCopiedType] = useState<'url' | 'markdown' | null>(null)
+  const { deleteImage, isDeleting } = useDeleteImageMutation()
+  const isLocal = useIsLocal()
 
   // モーダルが開いたときに表示回数をインクリメント
   useEffect(() => {
@@ -58,14 +64,49 @@ export function ImageDetailDialog({
     }
   }
 
+  const handleDelete = async () => {
+    if (!image) return
+
+    const confirmed = window.confirm(
+      'この画像を削除してもよろしいですか？この操作は取り消せません。',
+    )
+    if (!confirmed) return
+
+    try {
+      await deleteImage(image.imageId, image.imageUrl)
+      alert('画像を削除しました')
+      onOpenChange(false)
+      onDelete?.()
+    } catch (error) {
+      console.error('削除に失敗しました:', error)
+      alert('削除に失敗しました。再度お試しください。')
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>LGTM Image</DialogTitle>
-          <DialogDescription>
-            画像をクリップボードにコピーして使用できます
-          </DialogDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle>LGTM Image</DialogTitle>
+              <DialogDescription>
+                画像をクリップボードにコピーして使用できます
+              </DialogDescription>
+            </div>
+            {isLocal && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                title="画像を削除（ローカル環境のみ）"
+              >
+                <Trash2 className="w-4 h-4" />
+                {isDeleting ? '削除中...' : '削除'}
+              </button>
+            )}
+          </div>
         </DialogHeader>
 
         {/* 画像表示 */}

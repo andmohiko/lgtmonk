@@ -376,7 +376,7 @@ function GeneratePage() {
                       type="button"
                       key={image.imageUrl}
                       onClick={() => handleSelectImage(image)}
-                      className={`relative aspect-square rounded-md overflow-hidden transition-all ${
+                      className={`relative rounded-md overflow-hidden transition-all bg-[#0d1117] ${
                         selectedImage === image
                           ? 'ring-2 ring-[#58a6ff]'
                           : 'hover:opacity-80'
@@ -385,7 +385,7 @@ function GeneratePage() {
                       <img
                         src={image.thumbnailUrl}
                         alt={image.title}
-                        className="w-full h-full object-cover bg-[#0d1117]"
+                        className="w-full h-auto object-contain"
                       />
                       {selectedImage === image && (
                         <div className="absolute inset-0 bg-[#58a6ff]/10 flex items-center justify-center">

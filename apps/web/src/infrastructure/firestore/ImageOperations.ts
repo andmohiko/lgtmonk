@@ -9,6 +9,7 @@ import type { Unsubscribe } from 'firebase/firestore'
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -173,4 +174,13 @@ export const isExistsImageOperation = async (
 ): Promise<boolean> => {
   const docSnap = await getDoc(doc(db, imageCollection, imageId))
   return docSnap.exists()
+}
+
+/**
+ * 画像を削除
+ */
+export const deleteImageOperation = async (
+  imageId: ImageId,
+): Promise<void> => {
+  await deleteDoc(doc(db, imageCollection, imageId))
 }
