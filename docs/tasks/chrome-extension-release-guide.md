@@ -129,7 +129,7 @@ LGTMonkは、GitHubのプルリクエストに貼るLGTM画像を手軽にコピ
 4. GitHubのプルリクエストのコメント欄に貼り付け
 
 【Web版も提供中】
-https://lgtmonk.com
+https://lgtm.mnhr.dev/
 
 【オープンソース】
 ソースコードはGitHubで公開しています。
@@ -215,7 +215,7 @@ GitHub Issues: https://github.com/andmohiko/lgtmonk/issues
 
 **プライバシーポリシーの公開方法:**
 1. GitHub Pages で公開する
-2. Web版（lgtmonk.com）に `/privacy` ページを作成する
+2. Web版（lgtm.mnhr.dev）に `/privacy` ページを作成する
 3. その URL を Chrome Web Store の「プライバシーポリシー」欄に入力
 
 ---

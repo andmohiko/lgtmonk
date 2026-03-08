@@ -3,6 +3,7 @@
   "name": "LGTMonk - LGTM Image Generator",
   "version": "1.0.0",
   "description": "GitHubのプルリクエストに貼るLGTM画像を手軽にコピーできるChrome拡張",
+  "homepage_url": "https://lgtm.mnhr.dev",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
