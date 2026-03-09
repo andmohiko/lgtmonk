@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Check, Loader2, Search } from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
+import { Check, Loader2, Search, Upload, UploadCloud, X } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { GeneratingImageDialog } from '@/components/GeneratingImageDialog'
 import { logImageGenerate, logSearch } from '@/lib/analytics'
 import type { SearchResultImage } from '@/types/image'
@@ -10,6 +10,145 @@ export const Route = createFileRoute('/generate')({
 })
 
 type TabType = 'google' | 'upload'
+
+// ファイルアップロードエリアコンポーネント
+type FileUploadAreaProps = {
+  onFileSelect: (file: File) => void
+  onError: (error: string) => void
+}
+
+function FileUploadArea({ onFileSelect, onError }: FileUploadAreaProps) {
+  const [isDragging, setIsDragging] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const ACCEPTED_FORMATS = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+  const MAX_SIZE = 10 * 1024 * 1024 // 10MB
+
+  const validateFile = (file: File): string | null => {
+    // 形式チェック
+    if (!ACCEPTED_FORMATS.includes(file.type)) {
+      return '対応していない形式です。JPEG, PNG, WebP, GIFのみ対応しています。'
+    }
+    // サイズチェック
+    if (file.size > MAX_SIZE) {
+      return `ファイルサイズが大きすぎます。最大${MAX_SIZE / 1024 / 1024}MBまで対応しています。`
+    }
+    return null
+  }
+
+  const handleFile = (file: File) => {
+    const error = validateFile(file)
+    if (error) {
+      onError(error)
+      return
+    }
+    onFileSelect(file)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const file = e.dataTransfer.files[0]
+    if (file) handleFile(file)
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) handleFile(file)
+  }
+
+  return (
+    <div
+      className={`relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+        isDragging
+          ? 'border-[#58a6ff] bg-[#58a6ff]/10'
+          : 'border-[#30363d] hover:border-[#8b949e]'
+      }`}
+      onDragEnter={(e) => {
+        e.preventDefault()
+        setIsDragging(true)
+      }}
+      onDragOver={(e) => e.preventDefault()}
+      onDragLeave={(e) => {
+        e.preventDefault()
+        setIsDragging(false)
+      }}
+      onDrop={handleDrop}
+      onClick={() => fileInputRef.current?.click()}
+      role="button"
+      aria-label="画像ファイルをアップロード"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          fileInputRef.current?.click()
+        }
+      }}
+    >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={ACCEPTED_FORMATS.join(',')}
+        onChange={handleChange}
+        className="hidden"
+        aria-hidden="true"
+      />
+      <UploadCloud className="mx-auto h-12 w-12 text-[#6e7681] mb-3" />
+      <p className="text-sm text-[#c9d1d9] mb-2">
+        ファイルをドラッグ&ドロップ、またはクリックして選択
+      </p>
+      <p className="text-xs text-[#8b949e]">
+        JPEG, PNG, WebP, GIF (最大10MB)
+      </p>
+    </div>
+  )
+}
+
+// 画像プレビューコンポーネント
+type ImagePreviewProps = {
+  file: File
+  previewUrl: string | null
+  onClear: () => void
+}
+
+function ImagePreview({ file, previewUrl, onClear }: ImagePreviewProps) {
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  return (
+    <div className="relative border border-[#30363d] rounded-lg p-4 bg-[#0d1117]">
+      <button
+        type="button"
+        onClick={onClear}
+        className="absolute top-2 right-2 p-1.5 bg-[#21262d] rounded-full hover:bg-[#30363d] transition-colors z-10"
+        aria-label="画像を削除"
+      >
+        <X className="h-4 w-4 text-[#c9d1d9]" />
+      </button>
+
+      <div className="flex flex-col items-center gap-4">
+        {previewUrl && (
+          <img
+            src={previewUrl}
+            alt="アップロード画像プレビュー"
+            className="max-w-full max-h-96 object-contain rounded"
+          />
+        )}
+
+        <div className="text-sm text-[#8b949e] text-center">
+          <p className="font-medium text-[#c9d1d9]">{file.name}</p>
+          <p className="text-xs mt-1">
+            {file.type.replace('image/', '').toUpperCase()} •{' '}
+            {formatFileSize(file.size)}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function GeneratePage() {
   const [activeTab, setActiveTab] = useState<TabType>('google')
@@ -22,8 +161,8 @@ function GeneratePage() {
     null,
   )
   const [isGenerating, setIsGenerating] = useState(false)
-  // アップロード機能は将来実装予定のため、型定義のみ残す
-  const uploadedImage = null
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
     null,
@@ -35,6 +174,31 @@ function GeneratePage() {
     new Map(),
   )
   const lastSearchTimeRef = useRef<number>(0)
+
+  // アップロード画像のプレビュー生成
+  useEffect(() => {
+    if (!uploadedImage) {
+      setPreviewUrl(null)
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result as string)
+    }
+    reader.onerror = () => {
+      setErrorMessage('ファイルの読み込みに失敗しました。別のファイルをお試しください。')
+      setUploadedImage(null)
+    }
+    reader.readAsDataURL(uploadedImage)
+
+    // クリーンアップ
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl)
+      }
+    }
+  }, [uploadedImage])
 
   // Google画像検索処理（メモ化）
   const handleGoogleSearch = useCallback(async () => {
@@ -120,6 +284,23 @@ function GeneratePage() {
     setSelectedImage(image)
   }
 
+  // タブ切り替え処理（状態をリセット）
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab)
+    setErrorMessage(null)
+
+    if (tab === 'google') {
+      // Uploadタブから切り替えた場合、アップロード関連の状態をリセット
+      setUploadedImage(null)
+      setPreviewUrl(null)
+    } else if (tab === 'upload') {
+      // Googleタブから切り替えた場合、検索関連の状態をリセット
+      setKeyword('')
+      setSearchResults([])
+      setSelectedImage(null)
+    }
+  }
+
   // LGTM画像生成処理
   const handleGenerate = async () => {
     if (activeTab === 'google' && !selectedImage) return
@@ -171,8 +352,24 @@ function GeneratePage() {
     } catch (error) {
       console.error('LGTM画像生成エラー:', error)
       setIsDialogOpen(false) // エラー時はダイアログを閉じる
+
+      // エラーメッセージの詳細化
       if (error instanceof Error) {
-        setErrorMessage(error.message)
+        if (error.message.includes('network') || error.message.includes('fetch')) {
+          setErrorMessage(
+            'ネットワークエラーが発生しました。インターネット接続を確認してください。',
+          )
+        } else if (error.message.includes('timeout')) {
+          setErrorMessage(
+            'リクエストがタイムアウトしました。しばらく時間をおいてから再度お試しください。',
+          )
+        } else if (error.message.includes('Firestore')) {
+          setErrorMessage(
+            'データの保存に失敗しました。画像は生成されましたが、保存できませんでした。',
+          )
+        } else {
+          setErrorMessage(error.message)
+        }
       } else {
         setErrorMessage(
           'LGTM画像の生成に失敗しました。もう一度お試しください。',
@@ -266,12 +463,13 @@ function GeneratePage() {
         <div className="flex gap-2 mb-4 border-b border-[#21262d]">
           <button
             type="button"
-            onClick={() => setActiveTab('google')}
+            onClick={() => handleTabChange('google')}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors relative ${
               activeTab === 'google'
                 ? 'text-[#f0f6fc]'
                 : 'text-[#8b949e] hover:text-[#c9d1d9]'
             }`}
+            aria-label="Google画像検索タブ"
           >
             <Search className="w-4 h-4" />
             Search
@@ -279,22 +477,22 @@ function GeneratePage() {
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f78166]" />
             )}
           </button>
-          {/* アップロードタブは実装予定のため非表示 */}
-          {/* <button
+          <button
             type="button"
-            onClick={() => setActiveTab('upload')}
+            onClick={() => handleTabChange('upload')}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors relative ${
               activeTab === 'upload'
                 ? 'text-[#f0f6fc]'
                 : 'text-[#8b949e] hover:text-[#c9d1d9]'
             }`}
+            aria-label="画像アップロードタブ"
           >
             <Upload className="w-4 h-4" />
             Upload
             {activeTab === 'upload' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f78166]" />
             )}
-          </button> */}
+          </button>
         </div>
 
         {/* Google検索タブ */}
@@ -393,51 +591,47 @@ function GeneratePage() {
           </div>
         )}
 
-        {/* アップロードタブ（実装予定のため非表示） */}
-        {/* {activeTab === 'upload' && (
-          <div className="bg-[#161b22] border border-[#30363d] rounded-md p-4">
-            <p className="block text-sm font-medium text-[#f0f6fc] mb-2">
-              Image file
-            </p>
-            <label
-              htmlFor="file-upload"
-              className="flex flex-col items-center justify-center w-full py-8 border-2 border-dashed border-[#30363d] rounded-md cursor-pointer hover:border-[#58a6ff] transition-colors group"
-            >
-              {previewUrl ? (
-                <div className="flex flex-col items-center gap-2">
-                  <img
-                    src={previewUrl}
-                    alt="Preview"
-                    className="max-h-32 max-w-full object-contain rounded"
-                  />
-                  <p className="text-xs text-[#8b949e]">
-                    {uploadedImage?.name}{' '}
-                    {uploadedImage?.size
-                      ? `(${(uploadedImage.size / 1024 / 1024).toFixed(2)} MB)`
-                      : ''}
-                  </p>
-                </div>
+        {/* アップロードタブ */}
+        {activeTab === 'upload' && (
+          <div className="space-y-4">
+            <div className="bg-[#161b22] border border-[#30363d] rounded-md p-4">
+              <p className="block text-sm font-medium text-[#f0f6fc] mb-3">
+                Image file
+              </p>
+
+              {!uploadedImage ? (
+                <FileUploadArea
+                  onFileSelect={(file) => {
+                    setUploadedImage(file)
+                    setErrorMessage(null)
+                  }}
+                  onError={(error) => setErrorMessage(error)}
+                />
               ) : (
-                <>
-                  <ImageIcon className="w-8 h-8 text-[#6e7681] mb-2 group-hover:text-[#58a6ff] transition-colors" />
-                  <p className="text-sm text-[#8b949e] group-hover:text-[#c9d1d9]">
-                    Click to upload or drag and drop
-                  </p>
-                  <p className="text-xs text-[#6e7681] mt-1">
-                    JPEG, PNG, WebP, GIF (max 10MB)
-                  </p>
-                </>
+                <ImagePreview
+                  file={uploadedImage}
+                  previewUrl={previewUrl}
+                  onClear={() => {
+                    setUploadedImage(null)
+                    setPreviewUrl(null)
+                    setErrorMessage(null)
+                  }}
+                />
               )}
-              <input
-                id="file-upload"
-                type="file"
-                className="hidden"
-                accept="image/jpeg,image/png,image/webp,image/gif"
-                onChange={handleFileChange}
-              />
-            </label>
+            </div>
+
+            {/* エラーメッセージ表示 */}
+            {errorMessage && (
+              <div
+                className="bg-[#161b22] border border-[#da3633] rounded-md p-4"
+                role="alert"
+                aria-live="assertive"
+              >
+                <p className="text-sm text-[#f85149]">{errorMessage}</p>
+              </div>
+            )}
           </div>
-        )} */}
+        )}
 
         {/* フローティング生成ボタン */}
         {((activeTab === 'google' && selectedImage) ||
@@ -448,7 +642,9 @@ function GeneratePage() {
                 type="button"
                 onClick={handleGenerate}
                 disabled={isGenerating}
-                className="w-full py-3 bg-[#238636] text-white text-sm font-medium rounded-md hover:bg-[#2ea043] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 shadow-lg"
+                aria-disabled={isGenerating}
+                aria-label={isGenerating ? '生成中' : 'LGTM画像を生成'}
+                className="w-full py-3 bg-[#238636] text-white text-sm font-medium rounded-md hover:bg-[#2ea043] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 shadow-lg focus:outline-none focus:ring-2 focus:ring-[#58a6ff] focus:ring-offset-2 focus:ring-offset-[#0d1117]"
               >
                 {isGenerating ? (
                   <>

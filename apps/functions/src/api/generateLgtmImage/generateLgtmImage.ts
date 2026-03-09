@@ -33,9 +33,10 @@ export const handle = async (req: Request, res: Response) => {
       })
     }
 
-    if (!keyword || typeof keyword !== 'string' || keyword.trim().length === 0) {
+    // keywordパラメータの存在チェック（アップロード時は空文字列を許可）
+    if (keyword === undefined || keyword === null || typeof keyword !== 'string') {
       return res.status(400).json({
-        error: 'keyword is required',
+        error: 'keyword parameter is required',
       })
     }
 
