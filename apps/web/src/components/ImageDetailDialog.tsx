@@ -2,7 +2,8 @@ import type { Image } from '@lgtmonk/common'
 import { Check, Copy, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { FavoriteButton } from '@/components/FavoriteButton'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { VisuallyHidden } from '@/components/ui/visually-hidden'
 import { useDeleteImageMutation } from '@/hooks/useDeleteImageMutation'
 import { useIsLocal } from '@/hooks/useIsLocal'
 import {
@@ -46,7 +47,9 @@ export function ImageDetailDialog({
         setTimeout(() => setCopiedType(null), 2000)
 
         // コピーカウントをインクリメント
-        await incrementCopiedCountOperation(image.imageId)
+        incrementCopiedCountOperation(image.imageId).catch((error) => {
+          console.error('Failed to increment copiedCount:', error)
+        })
 
         // Analyticsイベントを記録
         logImageCopy(image.imageId, image.keyword)
@@ -115,6 +118,11 @@ export function ImageDetailDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <VisuallyHidden>
+          <DialogTitle>
+            {image.keyword ? `${image.keyword} - LGTM画像` : 'LGTM画像'}
+          </DialogTitle>
+        </VisuallyHidden>
         {/* 削除ボタン（ローカル環境のみ） */}
         {isLocal && (
           <div className="absolute top-4 right-12 z-10">
