@@ -1,13 +1,8 @@
 import type { Image } from '@lgtmonk/common'
 import { Check, Copy, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { FavoriteButton } from '@/components/FavoriteButton'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { useDeleteImageMutation } from '@/hooks/useDeleteImageMutation'
 import { useIsLocal } from '@/hooks/useIsLocal'
 import {
@@ -21,6 +16,8 @@ type ImageDetailDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   onDelete?: () => void
+  isFavorite: boolean
+  onToggleFavorite: (imageId: string, imageUrl: string) => void
 }
 
 export function ImageDetailDialog({
@@ -28,6 +25,8 @@ export function ImageDetailDialog({
   open,
   onOpenChange,
   onDelete,
+  isFavorite,
+  onToggleFavorite,
 }: ImageDetailDialogProps) {
   const [copiedType, setCopiedType] = useState<'url' | 'markdown' | null>(null)
   const { deleteImage, isDeleting } = useDeleteImageMutation()
@@ -86,36 +85,40 @@ export function ImageDetailDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <DialogTitle>LGTM Image</DialogTitle>
-              <DialogDescription>
-                画像をクリップボードにコピーして使用できます
-              </DialogDescription>
-            </div>
-            {isLocal && (
-              <button
-                type="button"
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-                title="画像を削除（ローカル環境のみ）"
-              >
-                <Trash2 className="w-4 h-4" />
-                {isDeleting ? '削除中...' : '削除'}
-              </button>
-            )}
+        {/* 削除ボタン（ローカル環境のみ） */}
+        {isLocal && (
+          <div className="absolute top-4 right-12 z-10">
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+              title="画像を削除（ローカル環境のみ）"
+            >
+              <Trash2 className="w-4 h-4" />
+              {isDeleting ? '削除中...' : '削除'}
+            </button>
           </div>
-        </DialogHeader>
+        )}
 
         {/* 画像表示 */}
-        <div className="flex items-center justify-center bg-[#0d1117] rounded-lg overflow-hidden">
+        <div className="relative flex items-center justify-center bg-[#0d1117] rounded-lg overflow-hidden">
           <img
             src={imageUrl}
             alt={image.keyword || 'LGTM Image'}
             className="max-w-full max-h-[60vh] object-contain"
           />
+          {/* お気に入りボタン（画像の右下） */}
+          <div className="absolute bottom-4 right-4">
+            <FavoriteButton
+              imageId={image.imageId}
+              imageUrl={image.imageUrl}
+              isFavorite={isFavorite}
+              onToggle={onToggleFavorite}
+              size="md"
+              variant="default"
+            />
+          </div>
         </div>
 
         {/* コピーセクション */}

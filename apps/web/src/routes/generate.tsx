@@ -21,7 +21,12 @@ function FileUploadArea({ onFileSelect, onError }: FileUploadAreaProps) {
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const ACCEPTED_FORMATS = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+  const ACCEPTED_FORMATS = [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/gif',
+  ]
   const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 
   const validateFile = (file: File): string | null => {
@@ -97,9 +102,7 @@ function FileUploadArea({ onFileSelect, onError }: FileUploadAreaProps) {
       <p className="text-sm text-[#c9d1d9] mb-2">
         ファイルをドラッグ&ドロップ、またはクリックして選択
       </p>
-      <p className="text-xs text-[#8b949e]">
-        JPEG, PNG, WebP, GIF (最大10MB)
-      </p>
+      <p className="text-xs text-[#8b949e]">JPEG, PNG, WebP, GIF (最大10MB)</p>
     </div>
   )
 }
@@ -187,7 +190,9 @@ function GeneratePage() {
       setPreviewUrl(reader.result as string)
     }
     reader.onerror = () => {
-      setErrorMessage('ファイルの読み込みに失敗しました。別のファイルをお試しください。')
+      setErrorMessage(
+        'ファイルの読み込みに失敗しました。別のファイルをお試しください。',
+      )
       setUploadedImage(null)
     }
     reader.readAsDataURL(uploadedImage)
@@ -355,7 +360,10 @@ function GeneratePage() {
 
       // エラーメッセージの詳細化
       if (error instanceof Error) {
-        if (error.message.includes('network') || error.message.includes('fetch')) {
+        if (
+          error.message.includes('network') ||
+          error.message.includes('fetch')
+        ) {
           setErrorMessage(
             'ネットワークエラーが発生しました。インターネット接続を確認してください。',
           )

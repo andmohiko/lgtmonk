@@ -9,14 +9,27 @@ import {
   Shuffle,
 } from 'lucide-react'
 import { useState } from 'react'
+import { FavoriteButton } from '@/components/FavoriteButton'
 import { ImageDetailDialog } from '@/components/ImageDetailDialog'
+import { useFavorites } from '@/hooks/useFavorites'
 import { useImages } from '@/hooks/useImages'
 
 export const Route = createFileRoute('/')({ component: App })
 
 function App() {
-  const { images, error, isLoading, displayMode, setDisplayMode, refetch } =
-    useImages()
+  const {
+    images,
+    error,
+    isLoading,
+    displayMode,
+    setDisplayMode,
+    refetch,
+    loadMoreFavorites,
+    hasMoreFavorites,
+    totalFavoritesCount,
+    isLoadingMore,
+  } = useImages()
+  const { isFavorite, toggleFavorite } = useFavorites()
   const [selectedImage, setSelectedImage] = useState<Image | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
@@ -98,31 +111,67 @@ function App() {
         ) : (
           !isLoading &&
           !error && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {images.map((image) => (
-                <button
-                  type="button"
-                  key={image.imageId}
-                  onClick={() => handleImageClick(image)}
-                  className="group relative bg-[#161b22] border border-[#30363d] rounded-md overflow-hidden hover:border-[#58a6ff] transition-all cursor-pointer text-left"
-                >
-                  {/* 画像 */}
-                  <div className="aspect-square relative bg-[#0d1117]">
-                    <img
-                      src={image.imageUrl}
-                      alt={image.keyword || 'LGTM Image'}
-                      className="w-full h-full object-contain"
-                    />
-                    {/* ホバー時のオーバーレイ */}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <p className="text-white text-sm font-medium">
-                        Click to view
-                      </p>
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {images.map((image) => (
+                  <button
+                    type="button"
+                    key={image.imageId}
+                    onClick={() => handleImageClick(image)}
+                    className="group relative bg-[#161b22] border border-[#30363d] rounded-md overflow-hidden hover:border-[#58a6ff] transition-all cursor-pointer text-left"
+                  >
+                    {/* 画像 */}
+                    <div className="aspect-square relative bg-[#0d1117]">
+                      <img
+                        src={image.imageUrl}
+                        alt={image.keyword || 'LGTM Image'}
+                        className="w-full h-full object-contain"
+                      />
+                      {/* ホバー時のオーバーレイ */}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <p className="text-white text-sm font-medium">
+                          Click to view
+                        </p>
+                      </div>
+                      {/* お気に入りボタン */}
+                      <div className="absolute top-2 right-2 z-10">
+                        <FavoriteButton
+                          imageId={image.imageId}
+                          imageUrl={image.imageUrl}
+                          isFavorite={isFavorite(image.imageId)}
+                          onToggle={toggleFavorite}
+                          size="sm"
+                        />
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))}
-            </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* お気に入りの「もっと見る」ボタン */}
+              {displayMode === 'favorites' && hasMoreFavorites && (
+                <div className="flex flex-col items-center gap-2 mt-8">
+                  <p className="text-sm text-[#8b949e]">
+                    {totalFavoritesCount}件中{images.length}件表示
+                  </p>
+                  <button
+                    type="button"
+                    onClick={loadMoreFavorites}
+                    disabled={isLoadingMore}
+                    className="px-6 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoadingMore ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        読み込み中...
+                      </span>
+                    ) : (
+                      'もっと見る'
+                    )}
+                  </button>
+                </div>
+              )}
+            </>
           )
         )}
       </div>
@@ -132,6 +181,8 @@ function App() {
         image={selectedImage}
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
+        isFavorite={selectedImage ? isFavorite(selectedImage.imageId) : false}
+        onToggleFavorite={toggleFavorite}
       />
     </div>
   )

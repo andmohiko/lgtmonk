@@ -32,7 +32,9 @@
       "WebSearch",
       "Bash(pnpm check:*)",
       "Bash(pnpm --filter @lgtmonk/extension exec tsc:*)",
-      "Bash(pnpm --filter @lgtmonk/functions exec tsc:*)"
+      "Bash(pnpm --filter @lgtmonk/functions exec tsc:*)",
+      "Bash(find:*)",
+      "Bash(xargs:*)"
     ],
     "deny": [],
     "ask": []
