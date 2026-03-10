@@ -5,6 +5,7 @@ import {
   Scripts,
 } from '@tanstack/react-router'
 
+import { Footer } from '../components/layout/Footer'
 import { Header } from '../components/layout/Header'
 import { usePageTracking } from '../hooks/usePageTracking'
 import appCss from '../styles.css?url'
@@ -94,6 +95,7 @@ function RootLayout() {
       <main className="flex-1">
         <Outlet />
       </main>
+      <Footer />
     </div>
   )
 }
