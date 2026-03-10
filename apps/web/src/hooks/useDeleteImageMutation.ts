@@ -21,7 +21,8 @@ export const useDeleteImageMutation = () => {
       // Firestoreのドキュメントを削除
       await deleteImageOperation(imageId)
     } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : '画像の削除に失敗しました'
+      const errorMessage =
+        e instanceof Error ? e.message : '画像の削除に失敗しました'
       setError(errorMessage)
       throw e
     } finally {
