@@ -11,6 +11,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  documentId,
   getDoc,
   getDocs,
   increment,
@@ -74,10 +75,50 @@ export const fetchImagesByKeywordOperation = async (
 }
 
 /**
+ * 画像IDの配列から画像を取得する（最大30件）
+ * @param imageIds - 取得する画像IDの配列（最大30件）
+ * @returns 画像の配列（存在しないIDはスキップされる）
+ */
+export const fetchImagesByIdsOperation = async (
+  imageIds: Array<ImageId>,
+): Promise<Array<Image>> => {
+  // 空配列の場合は早期リターン
+  if (imageIds.length === 0) {
+    return []
+  }
+
+  // Firestoreの`in`句は最大30件の制限があるため、31件以上は受け付けない
+  if (imageIds.length > 30) {
+    throw new Error('imageIds must be 30 or fewer')
+  }
+
+  const snapshot = await getDocs(
+    query(collection(db, imageCollection), where(documentId(), 'in', imageIds)),
+  )
+
+  // 取得した画像をImageId順に並べ替えるためのマップを作成
+  const imageMap = new Map<ImageId, Image>()
+  snapshot.docs.forEach((doc) => {
+    const image = {
+      imageId: doc.id,
+      ...convertDate(doc.data(), dateColumns),
+    } as Image
+    imageMap.set(doc.id, image)
+  })
+
+  // localStorageの順序を保持するため、imageIds順に並べ替える
+  return imageIds
+    .map((id) => imageMap.get(id))
+    .filter((image): image is Image => image !== undefined)
+}
+
+/**
  * pivotの直後のドキュメントを1件取得する
  * 終端を超えた場合はpivot=0でラップアラウンドする
  */
-const fetchOneAfterPivot = async (pivot: number): Promise<DocumentSnapshot | null> => {
+const fetchOneAfterPivot = async (
+  pivot: number,
+): Promise<DocumentSnapshot | null> => {
   const q = query(
     collection(db, imageCollection),
     where('random', '>=', pivot),
@@ -91,11 +132,7 @@ const fetchOneAfterPivot = async (pivot: number): Promise<DocumentSnapshot | nul
   }
 
   // ラップアラウンド
-  const q2 = query(
-    collection(db, imageCollection),
-    orderBy('random'),
-    limit(1),
-  )
+  const q2 = query(collection(db, imageCollection), orderBy('random'), limit(1))
   const snap2 = await getDocs(q2)
   return snap2.empty ? null : snap2.docs[0]
 }
@@ -227,8 +264,6 @@ export const isExistsImageOperation = async (
 /**
  * 画像を削除
  */
-export const deleteImageOperation = async (
-  imageId: ImageId,
-): Promise<void> => {
+export const deleteImageOperation = async (imageId: ImageId): Promise<void> => {
   await deleteDoc(doc(db, imageCollection, imageId))
 }

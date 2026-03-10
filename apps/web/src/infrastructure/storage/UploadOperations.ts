@@ -1,4 +1,9 @@
-import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage'
+import {
+  deleteObject,
+  getDownloadURL,
+  ref,
+  uploadBytesResumable,
+} from 'firebase/storage'
 
 import { storage } from '@/lib/firebase'
 
