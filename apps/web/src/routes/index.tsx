@@ -114,14 +114,16 @@ function App() {
             <>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {images.map((image) => (
-                  <button
-                    type="button"
+                  <div
                     key={image.imageId}
-                    onClick={() => handleImageClick(image)}
-                    className="group relative bg-[#161b22] border border-[#30363d] rounded-md overflow-hidden hover:border-[#58a6ff] transition-all cursor-pointer text-left"
+                    className="group relative bg-[#161b22] border border-[#30363d] rounded-md overflow-hidden hover:border-[#58a6ff] transition-all"
                   >
                     {/* 画像 */}
-                    <div className="aspect-square relative bg-[#0d1117]">
+                    <button
+                      type="button"
+                      onClick={() => handleImageClick(image)}
+                      className="w-full aspect-square relative bg-[#0d1117] cursor-pointer"
+                    >
                       <img
                         src={image.imageUrl}
                         alt={image.keyword || 'LGTM Image'}
@@ -133,18 +135,18 @@ function App() {
                           Click to view
                         </p>
                       </div>
-                      {/* お気に入りボタン */}
-                      <div className="absolute top-2 right-2 z-10">
-                        <FavoriteButton
-                          imageId={image.imageId}
-                          imageUrl={image.imageUrl}
-                          isFavorite={isFavorite(image.imageId)}
-                          onToggle={toggleFavorite}
-                          size="sm"
-                        />
-                      </div>
+                    </button>
+                    {/* お気に入りボタン */}
+                    <div className="absolute top-2 right-2 z-10">
+                      <FavoriteButton
+                        imageId={image.imageId}
+                        imageUrl={image.imageUrl}
+                        isFavorite={isFavorite(image.imageId)}
+                        onToggle={toggleFavorite}
+                        size="sm"
+                      />
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
 

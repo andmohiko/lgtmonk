@@ -23,7 +23,7 @@ import {
   where,
 } from 'firebase/firestore'
 
-import { db } from '@/lib/firebase'
+import { db, serverTimestamp } from '@/lib/firebase'
 import { convertDate } from '@/utils/convertDate'
 
 // 日付変換が必要なカラムを定義
@@ -237,6 +237,7 @@ export const incrementCopiedCountOperation = async (
 ): Promise<void> => {
   await updateDoc(doc(db, imageCollection, imageId), {
     copiedCount: increment(1),
+    updatedAt: serverTimestamp,
   })
 }
 
@@ -248,6 +249,7 @@ export const incrementImpressionCountOperation = async (
 ): Promise<void> => {
   await updateDoc(doc(db, imageCollection, imageId), {
     impressionCount: increment(1),
+    updatedAt: serverTimestamp,
   })
 }
 
