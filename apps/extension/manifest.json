@@ -22,7 +22,6 @@
     "type": "module"
   },
   "permissions": [
-    "storage",
     "clipboardWrite"
   ],
   "host_permissions": [
