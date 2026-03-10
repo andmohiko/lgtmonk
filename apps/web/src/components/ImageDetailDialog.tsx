@@ -1,6 +1,6 @@
 import type { Image } from '@lgtmonk/common'
 import { Check, Copy, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { FavoriteButton } from '@/components/FavoriteButton'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { useDeleteImageMutation } from '@/hooks/useDeleteImageMutation'
@@ -32,6 +32,32 @@ export function ImageDetailDialog({
   const { deleteImage, isDeleting } = useDeleteImageMutation()
   const isLocal = useIsLocal()
 
+  // 早期リターンの前に必要な値を準備
+  const imageUrl = image?.imageUrl ?? ''
+  const markdown = `![LGTM](${imageUrl})`
+
+  const handleCopy = useCallback(
+    async (text: string, type: 'url' | 'markdown') => {
+      if (!image) return
+
+      try {
+        await navigator.clipboard.writeText(text)
+        setCopiedType(type)
+        setTimeout(() => setCopiedType(null), 2000)
+
+        // コピーカウントをインクリメント
+        await incrementCopiedCountOperation(image.imageId)
+
+        // Analyticsイベントを記録
+        logImageCopy(image.imageId, image.keyword)
+      } catch (error) {
+        console.error('コピーに失敗しました:', error)
+        alert('コピーに失敗しました')
+      }
+    },
+    [image],
+  )
+
   // モーダルが開いたときに表示回数をインクリメント
   useEffect(() => {
     if (open && image) {
@@ -41,27 +67,31 @@ export function ImageDetailDialog({
     }
   }, [open, image])
 
-  if (!image) return null
+  // キーボードショートカット（c キーでMarkdownをコピー）
+  useEffect(() => {
+    if (!open || !image) return
 
-  const imageUrl = image.imageUrl
-  const markdown = `![LGTM](${imageUrl})`
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // 入力フィールドにフォーカスがある場合は無視
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement
+      ) {
+        return
+      }
 
-  const handleCopy = async (text: string, type: 'url' | 'markdown') => {
-    try {
-      await navigator.clipboard.writeText(text)
-      setCopiedType(type)
-      setTimeout(() => setCopiedType(null), 2000)
-
-      // コピーカウントをインクリメント
-      await incrementCopiedCountOperation(image.imageId)
-
-      // Analyticsイベントを記録
-      logImageCopy(image.imageId, image.keyword)
-    } catch (error) {
-      console.error('コピーに失敗しました:', error)
-      alert('コピーに失敗しました')
+      // c キーでMarkdownをコピー
+      if (event.key === 'c' || event.key === 'C') {
+        event.preventDefault()
+        handleCopy(markdown, 'markdown')
+      }
     }
-  }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [open, image, markdown, handleCopy])
+
+  if (!image) return null
 
   const handleDelete = async () => {
     if (!image) return
@@ -127,9 +157,12 @@ export function ImageDetailDialog({
           <div>
             <label
               htmlFor="markdown-text"
-              className="block text-sm font-medium text-[#f0f6fc] mb-2"
+              className="block text-sm font-medium text-[#f0f6fc] mb-2 flex items-center gap-2"
             >
               Markdown
+              <span className="text-xs text-[#8b949e] font-normal">
+                (Press <kbd className="px-1.5 py-0.5 bg-[#21262d] border border-[#30363d] rounded text-[10px] font-mono">C</kbd> to copy)
+              </span>
             </label>
             <div className="flex gap-2">
               <input
