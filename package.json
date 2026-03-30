@@ -21,7 +21,9 @@
     "check": "biome check ./apps/*/src/**/* ./packages/*/src/**/*",
     "format": "biome format --write ./apps/*/src/**/* ./packages/*/src/**/*",
     "cspell": "cspell -c ./cspell.json './apps/*/src/**/*' './packages/*/src/**/*'",
-    "prepare": "husky"
+    "prepare": "husky",
+    "env:encrypt": "pnpm -F web run env:encrypt && pnpm -F functions run env:encrypt && pnpm -F extension run env:encrypt",
+    "env:decrypt": "pnpm -F web run env:decrypt && pnpm -F functions run env:decrypt && pnpm -F extension run env:decrypt"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.6",
