@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "dotenvx run -- vite",
+    "env:encrypt": "dotenvx encrypt",
+    "env:decrypt": "dotenvx decrypt",
     "build": "vite build",
     "preview": "vite preview"
   },

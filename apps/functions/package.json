@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "env:encrypt": "dotenvx encrypt",
+    "env:decrypt": "dotenvx decrypt",
     "lint:tsc": "tsc --noEmit",
     "lint:biome": "biome lint ./src",
     "lint:cspell": "cspell -c ../../cspell.json src/**/*",

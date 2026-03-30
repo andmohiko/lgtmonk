@@ -6,7 +6,9 @@
     "#/*": "./src/*"
   },
   "scripts": {
-    "dev": "vite dev --port 3000",
+    "dev": "dotenvx run -- vite dev --port 3000",
+    "env:encrypt": "dotenvx encrypt",
+    "env:decrypt": "dotenvx decrypt",
     "build": "vite build",
     "start": "vite preview",
     "preview": "vite preview",
