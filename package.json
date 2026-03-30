@@ -8,7 +8,6 @@
     "packages/*"
   ],
   "scripts": {
-    "console": "pnpm -F \"console\"",
     "web": "pnpm -F \"web\"",
     "functions": "pnpm -F \"functions\"",
     "common": "pnpm -F \"common\"",
