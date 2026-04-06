@@ -16,5 +16,76 @@ service cloud.firestore {
     function isUser(userId) {
       return request.auth.uid == userId;
     }
+
+    // Image の作成スキーマバリデーション
+    function isValidImageCreateSchema(requestData) {
+      return requestData.size() == 8
+        && 'copiedCount' in requestData && requestData.copiedCount is number
+        && 'createdAt' in requestData && requestData.createdAt is timestamp
+        && 'createdBy' in requestData && (requestData.createdBy is string || requestData.createdBy == null)
+        && 'imageUrl' in requestData && requestData.imageUrl is string
+        && 'impressionCount' in requestData && requestData.impressionCount is number
+        && 'keyword' in requestData && requestData.keyword is string
+        && 'random' in requestData && requestData.random is number
+        && 'updatedAt' in requestData && requestData.updatedAt is timestamp;
+    }
+
+    // Image の更新スキーマバリデーション（randomフィールドは既存データに存在しない場合がある）
+    function isValidImageUpdateSchema(requestData) {
+      return (requestData.size() == 7 || requestData.size() == 8)
+        && 'copiedCount' in requestData && requestData.copiedCount is number
+        && 'createdAt' in requestData && requestData.createdAt is timestamp
+        && 'createdBy' in requestData && (requestData.createdBy is string || requestData.createdBy == null)
+        && 'imageUrl' in requestData && requestData.imageUrl is string
+        && 'impressionCount' in requestData && requestData.impressionCount is number
+        && 'keyword' in requestData && requestData.keyword is string
+        && 'updatedAt' in requestData && requestData.updatedAt is timestamp;
+    }
+
+    // Generate のスキーマバリデーション
+    function isValidGenerateSchema(requestData) {
+      return requestData.size() == 2
+        && 'createdAt' in requestData && requestData.createdAt is timestamp
+        && 'imageUrl' in requestData && requestData.imageUrl is string;
+    }
+
+    // Favorite のスキーマバリデーション
+    function isValidFavoriteSchema(requestData) {
+      return requestData.size() == 2
+        && 'createdAt' in requestData && requestData.createdAt is timestamp
+        && 'imageUrl' in requestData && requestData.imageUrl is string;
+    }
+
+    // images コレクション: 誰でも読み取り・作成・更新可能（認証不要の機能のため）
+    match /images/{imageId} {
+      allow read: if true;
+      allow create: if isValidImageCreateSchema(requestData());
+      allow update: if isValidImageUpdateSchema(requestData());
+      allow delete: if false;
+    }
+
+    // users コレクション: 本人のみ読み書き可能
+    match /users/{userId} {
+      allow read: if isUser(userId);
+      allow create: if isUser(userId);
+      allow update: if isUser(userId);
+      allow delete: if false;
+
+      // generates サブコレクション: 本人のみ読み書き可能
+      match /generates/{imageId} {
+        allow read: if isUser(userId);
+        allow create: if isUser(userId) && isValidGenerateSchema(requestData());
+        allow update: if false;
+        allow delete: if isUser(userId);
+      }
+
+      // favorites サブコレクション: 本人のみ読み書き可能
+      match /favorites/{imageId} {
+        allow read: if isUser(userId);
+        allow create: if isUser(userId) && isValidFavoriteSchema(requestData());
+        allow update: if false;
+        allow delete: if isUser(userId);
+      }
+    }
   }
 }
