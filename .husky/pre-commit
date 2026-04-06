@@ -1,0 +1,48 @@
+# dotenvx: 暗号化されていない.envファイルのコミットを防止
+# コミット対象の.envファイルに平文の値が含まれていないかチェックする
+
+staged_env_files=$(git diff --cached --name-only | grep -E '(^|/)\.env(\.[^/]+)?$' | grep -v '\.env\.keys' | grep -v '\.env\.example' || true)
+
+if [ -z "$staged_env_files" ]; then
+  exit 0
+fi
+
+has_error=false
+
+for file in $staged_env_files; do
+  # ステージされた内容を取得（ワーキングディレクトリではなくコミットされる内容）
+  staged_content=$(git show ":$file" 2>/dev/null)
+  if [ $? -ne 0 ]; then
+    echo "⚠️  ステージされたファイルの内容を取得できませんでした: $file"
+    has_error=true
+    continue
+  fi
+
+  # KEY=VALUE形式の行を抽出（コメント、空行、DOTENV_PUBLIC_KEY行を除く）
+  # 値が encrypted: で始まっていなければ平文
+  plaintext_lines=$(echo "$staged_content" \
+    | grep -E '^[A-Za-z_][A-Za-z0-9_]*=' \
+    | grep -v '^DOTENV_PUBLIC_KEY' \
+    | grep -v '^#' \
+    | grep -v '="encrypted:' \
+    | grep -v "='encrypted:" \
+    | grep -v '=encrypted:' || true)
+
+  if [ -n "$plaintext_lines" ]; then
+    echo "❌ 暗号化されていない環境変数が検出されました: $file"
+    echo "$plaintext_lines" | while read -r line; do
+      key=$(echo "$line" | cut -d'=' -f1)
+      echo "   - $key"
+    done
+    has_error=true
+  fi
+done
+
+if [ "$has_error" = true ]; then
+  echo ""
+  echo "💡 暗号化してからコミットしてください:"
+  echo "   pnpm web run env:encrypt"
+  echo "   pnpm functions run env:encrypt"
+  echo "   cd apps/extension && pnpm run env:encrypt"
+  exit 1
+fi
